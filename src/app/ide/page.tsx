@@ -37,6 +37,10 @@ export default function IdePage() {
                     <SelectItem value="javascript">JavaScript</SelectItem>
                     <SelectItem value="python">Python</SelectItem>
                     <SelectItem value="html">HTML</SelectItem>
+                    <SelectItem value="css">CSS</SelectItem>
+                    <SelectItem value="java">Java</SelectItem>
+                    <SelectItem value="csharp">C#</SelectItem>
+                    <SelectItem value="cpp">C++</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select disabled>
@@ -44,10 +48,18 @@ export default function IdePage() {
                     <SelectValue placeholder="Select Grade Level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="grade1-5">Grade 1-5</SelectItem>
-                    <SelectItem value="grade6-8">Grade 6-8</SelectItem>
-                    <SelectItem value="grade9-10">Grade 9-10</SelectItem>
-                    <SelectItem value="grade11-12">Grade 11-12</SelectItem>
+                    <SelectItem value="grade1">Grade 1</SelectItem>
+                    <SelectItem value="grade2">Grade 2</SelectItem>
+                    <SelectItem value="grade3">Grade 3</SelectItem>
+                    <SelectItem value="grade4">Grade 4</SelectItem>
+                    <SelectItem value="grade5">Grade 5</SelectItem>
+                    <SelectItem value="grade6">Grade 6</SelectItem>
+                    <SelectItem value="grade7">Grade 7</SelectItem>
+                    <SelectItem value="grade8">Grade 8</SelectItem>
+                    <SelectItem value="grade9">Grade 9</SelectItem>
+                    <SelectItem value="grade10">Grade 10</SelectItem>
+                    <SelectItem value="grade11">Grade 11</SelectItem>
+                    <SelectItem value="grade12">Grade 12</SelectItem>
                     <SelectItem value="college">College/Adult</SelectItem>
                   </SelectContent>
                 </Select>
@@ -70,7 +82,7 @@ export default function IdePage() {
                 <Textarea
                   placeholder="// Your code goes here... Basic editing enabled for all users."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-sm font-mono focus-visible:ring-0 focus-visible:ring-offset-0"
-                  // readOnly // For UI preview, can be enabled for basic typing
+                  // Code editing is enabled by default (no readOnly prop)
                 />
               </div>
 
@@ -103,7 +115,8 @@ export default function IdePage() {
                 </div>
              </div>
             <p className="text-xs text-muted-foreground text-center w-full mt-2">
-              Note: This is a visual representation. Code execution, class verification, and advanced tools are not functional.
+              Note: This is a visual representation. Code editing is enabled for practice. 
+              Code execution, class verification, and advanced tools are not functional.
               Advanced tools would be available for Grade 9+ users after class confirmation.
             </p>
           </CardFooter>
