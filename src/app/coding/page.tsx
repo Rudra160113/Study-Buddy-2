@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CodeXml, Lightbulb, Zap, BookOpen, Brain } from 'lucide-react';
+import { CodeXml, Lightbulb, Zap, BookOpen, Brain, TerminalSquare } from 'lucide-react';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -260,29 +260,6 @@ export default function CodingPage() {
             </CardFooter>
           </Card>
         )}
-
-        <div className="flex justify-center mt-12">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 w-full max-w-2xl">
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <CodeXml className="h-10 w-10 text-primary" />
-                <CardTitle className="text-3xl">Practice IDE</CardTitle>
-              </div>
-              <CardDescription className="text-md">
-                Test your knowledge and experiment with code in our integrated development environment.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button disabled className="w-full bg-primary hover:bg-primary/90">
-                Launch Coding Environment
-              </Button>
-              <p className="text-sm text-center text-muted-foreground pt-4">
-                The interactive IDE is currently under construction. Stay tuned!
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
       </div>
     </AppShell>
   );
@@ -294,5 +271,3 @@ const Loader2 = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
   </svg>
 );
-
-    

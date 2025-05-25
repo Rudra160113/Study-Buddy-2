@@ -17,7 +17,8 @@ import {
   Timer,
   ListChecks,
   Gamepad2,
-  CodeXml, // Added CodeXml icon for Coding Zone
+  CodeXml, 
+  TerminalSquare, // Added TerminalSquare icon for IDE
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +29,8 @@ const navItems = [
   { href: '/resources', label: 'Resource Suggester', icon: Cpu },
   { href: '/tips', label: 'Time Management Tips', icon: BookOpenText },
   { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
-  { href: '/coding', label: 'Coding Zone', icon: CodeXml }, // Added Coding Zone link
+  { href: '/coding', label: 'Coding Zone', icon: CodeXml },
+  { href: '/ide', label: 'IDE', icon: TerminalSquare }, // Added IDE link
 ];
 
 export function SidebarNav() {

@@ -16,7 +16,8 @@ const getPageTitle = (pathname: string): string => {
     case '/resources': return 'Resource Suggester';
     case '/tips': return 'Time Management Tips';
     case '/gaming': return 'Gaming Zone';
-    case '/coding': return 'Coding Zone'; // Added title for coding page
+    case '/coding': return 'Coding Zone';
+    case '/ide': return 'IDE'; // Added title for IDE page
     default: return 'Study Buddy';
   }
 };
