@@ -9,38 +9,16 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+// Import the schemas and types from the new shared file
+import {
+  GenerateCustomQuestionsInputSchema,
+  GenerateCustomQuestionsOutputSchema,
+  type GenerateCustomQuestionsInput,
+  type GenerateCustomQuestionsOutput,
+} from '@/lib/schemas/custom-questions-schemas';
 
-const classLevels = [
-  "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6",
-  "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12",
-  "College Freshman", "College Sophomore", "College Junior", "College Senior",
-  "Postgraduate", "Professional Development"
-] as const;
-
-const questionStyles = [
-    "Short Answer (1-2 sentences)",
-    "Explanation Required (paragraph)",
-    "Problem Solving (show steps if applicable)",
-    "Critical Thinking/Analysis",
-    "Compare and Contrast",
-    "Definition Request",
-    "Scenario-based Question"
-] as const;
-
-export const GenerateCustomQuestionsInputSchema = z.object({
-  classLevel: z.enum(classLevels).describe('The target academic level for the questions.'),
-  subject: z.string().min(3).describe('The subject area (e.g., "Physics", "World History", "Algebra").'),
-  topicDetails: z.string().min(10).describe('A detailed description of the chapter, topic, or specific concepts the questions should cover.'),
-  questionStyle: z.enum(questionStyles).describe('The desired style or type of open-ended questions.'),
-  numberOfQuestions: z.number().min(1).max(10).default(3).describe('The number of questions to generate.'),
-});
-export type GenerateCustomQuestionsInput = z.infer<typeof GenerateCustomQuestionsInputSchema>;
-
-export const GenerateCustomQuestionsOutputSchema = z.object({
-  questions: z.array(z.string()).describe('An array of generated open-ended questions.'),
-});
-export type GenerateCustomQuestionsOutput = z.infer<typeof GenerateCustomQuestionsOutputSchema>;
+// Re-export the types for this flow's public interface
+export type { GenerateCustomQuestionsInput, GenerateCustomQuestionsOutput };
 
 export async function generateCustomQuestions(input: GenerateCustomQuestionsInput): Promise<GenerateCustomQuestionsOutput> {
   return generateCustomQuestionsFlow(input);
@@ -48,8 +26,8 @@ export async function generateCustomQuestions(input: GenerateCustomQuestionsInpu
 
 const customQuestionGenerationPrompt = ai.definePrompt({
   name: 'generateCustomQuestionsPrompt',
-  input: { schema: GenerateCustomQuestionsInputSchema },
-  output: { schema: GenerateCustomQuestionsOutputSchema },
+  input: { schema: GenerateCustomQuestionsInputSchema }, // Use imported schema
+  output: { schema: GenerateCustomQuestionsOutputSchema }, // Use imported schema
   prompt: `You are an expert question writer for educational content. Your task is to generate {{numberOfQuestions}} open-ended (non-multiple-choice) questions based on the following criteria:
 
 Academic Level: {{classLevel}}
@@ -96,8 +74,8 @@ Generate the questions now.
 const generateCustomQuestionsFlow = ai.defineFlow(
   {
     name: 'generateCustomQuestionsFlow',
-    inputSchema: GenerateCustomQuestionsInputSchema,
-    outputSchema: GenerateCustomQuestionsOutputSchema,
+    inputSchema: GenerateCustomQuestionsInputSchema, // Use imported schema
+    outputSchema: GenerateCustomQuestionsOutputSchema, // Use imported schema
   },
   async (input) => {
     const { output } = await customQuestionGenerationPrompt(input);

@@ -15,16 +15,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  generateCustomQuestions, 
+  generateCustomQuestions,
+} from '@/ai/flows/generate-custom-questions-flow';
+import { 
+  GenerateCustomQuestionsInputSchema,
   type GenerateCustomQuestionsInput, 
   type GenerateCustomQuestionsOutput,
-  GenerateCustomQuestionsInputSchema // Import the schema for direct use
-} from '@/ai/flows/generate-custom-questions-flow';
+  classLevels,
+  questionStyles
+} from '@/lib/schemas/custom-questions-schemas';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Directly use the enums from the schema for consistency
-const classLevels = GenerateCustomQuestionsInputSchema.shape.classLevel._def.values;
-const questionStyles = GenerateCustomQuestionsInputSchema.shape.questionStyle._def.values;
 
 
 export default function CustomQuizGeneratorPage() {
