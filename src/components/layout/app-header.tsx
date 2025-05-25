@@ -21,10 +21,13 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/super-sums': return 'Super Sums Challenge';
     case '/gaming/bodmas-masters': return 'BODMAS Masters';
     case '/gaming/dice-probability': return 'Dice Probability Challenge';
-    case '/gaming/pattern-recall': return 'Pattern Recall Challenge'; // New game title
+    case '/gaming/pattern-recall': return 'Pattern Recall Challenge';
+    case '/gaming/hindi-riddles': return 'Hindi Paheliyan Challenge'; // New game title
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
-    default: return 'Study Buddy';
+    default: 
+      if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games
+      return 'Study Buddy';
   }
 };
 
@@ -61,3 +64,4 @@ export function AppHeader() {
     </header>
   );
 }
+
