@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { HelpCircle, ListPlus, Loader2, Wand2, ThumbsUp } from 'lucide-react';
+import { HelpCircle, ListPlus, Loader2, Wand2, ThumbsUp, BookOpen } from 'lucide-react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
@@ -21,15 +21,17 @@ import {
   GenerateCustomQuestionsInputSchema,
   type GenerateCustomQuestionsInput, 
   type GenerateCustomQuestionsOutput,
+  type QuestionAnswerPair,
   classLevels,
   questionStyles
 } from '@/lib/schemas/custom-questions-schemas';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 
 export default function CustomQuizGeneratorPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedQuestions, setGeneratedQuestions] = useState<string[]>([]);
+  const [generatedPairs, setGeneratedPairs] = useState<QuestionAnswerPair[]>([]);
   const { toast } = useToast();
 
   const form = useForm<GenerateCustomQuestionsInput>({
@@ -45,24 +47,30 @@ export default function CustomQuizGeneratorPage() {
 
   const onSubmit: SubmitHandler<GenerateCustomQuestionsInput> = async (data) => {
     setIsLoading(true);
-    setGeneratedQuestions([]);
+    setGeneratedPairs([]);
     try {
       const result: GenerateCustomQuestionsOutput = await generateCustomQuestions(data);
-      if (result.questions && result.questions.length > 0) {
-        setGeneratedQuestions(result.questions);
-        toast({ title: "Questions Generated!", description: "Your custom questions are ready." });
+      if (result.questionAnswerPairs && result.questionAnswerPairs.length > 0) {
+        setGeneratedPairs(result.questionAnswerPairs);
+        toast({ title: "Questions & Answers Generated!", description: "Your custom Q&A pairs are ready." });
       } else {
-        setGeneratedQuestions(["The AI couldn't generate questions for this specific request. Please try adjusting your input."]);
-        toast({ title: "No Questions Generated", description: "Please refine your topic or style and try again.", variant: "destructive" });
+        setGeneratedPairs([{
+          question: "The AI couldn't generate questions and answers for this specific request. Please try adjusting your input.",
+          answer: "N/A"
+        }]);
+        toast({ title: "No Q&A Generated", description: "Please refine your topic or style and try again.", variant: "destructive" });
       }
     } catch (error) {
-      console.error("Error generating custom questions:", error);
+      console.error("Error generating custom questions and answers:", error);
       toast({
         title: "Error",
-        description: "Could not generate questions. Please try again later.",
+        description: "Could not generate questions and answers. Please try again later.",
         variant: "destructive",
       });
-       setGeneratedQuestions(["An error occurred while generating questions. Please try again."]);
+       setGeneratedPairs([{
+         question: "An error occurred while generating questions and answers. Please try again.",
+         answer: "N/A"
+        }]);
     } finally {
       setIsLoading(false);
     }
@@ -76,17 +84,17 @@ export default function CustomQuizGeneratorPage() {
             <Wand2 className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-primary mb-2">
-            Custom Question Generator
+            Custom Q&A Generator
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Get AI-generated open-ended questions tailored to your study needs.
+            Get AI-generated open-ended questions with answers, tailored to your study needs.
           </p>
         </header>
 
         <Card className="shadow-xl max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center gap-2"><HelpCircle className="text-accent" />Describe Your Needs</CardTitle>
-            <CardDescription>Fill in the details below to generate your custom questions.</CardDescription>
+            <CardDescription>Fill in the details below to generate your custom questions and answers.</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -140,7 +148,7 @@ export default function CustomQuizGeneratorPage() {
                           rows={5} 
                         />
                       </FormControl>
-                      <FormDescription>The more detail you provide, the better the questions will be.</FormDescription>
+                      <FormDescription>The more detail you provide, the better the questions and answers will be.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -171,7 +179,7 @@ export default function CustomQuizGeneratorPage() {
                     name="numberOfQuestions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Number of Questions (1-10)</FormLabel>
+                        <FormLabel>Number of Q&A (1-10)</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -190,40 +198,49 @@ export default function CustomQuizGeneratorPage() {
               <CardFooter className="flex justify-end">
                 <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ListPlus className="mr-2 h-4 w-4" />}
-                  {isLoading ? 'Generating...' : 'Generate Questions'}
+                  {isLoading ? 'Generating...' : 'Generate Q&A'}
                 </Button>
               </CardFooter>
             </form>
           </Form>
         </Card>
 
-        {(isLoading || generatedQuestions.length > 0) && (
+        {(isLoading || generatedPairs.length > 0) && (
           <Card className="shadow-lg max-w-2xl mx-auto mt-8">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2"><ThumbsUp className="text-accent"/>Generated Questions</CardTitle>
+              <CardTitle className="text-xl flex items-center gap-2"><ThumbsUp className="text-accent"/>Generated Q&A Pairs</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading && (
                 <div className="space-y-3">
                   {[...Array(form.getValues("numberOfQuestions") || 3)].map((_, i) => (
-                    <div key={i} className="space-y-1">
-                        <Skeleton className="h-5 w-12" />
+                    <div key={i} className="space-y-2 p-3 border rounded-md">
+                        <Skeleton className="h-5 w-1/4 mb-1" /> {/* For "Question X:" */}
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-5/6" />
+                        <Skeleton className="h-5 w-1/6 mt-2 mb-1" /> {/* For "Answer:" */}
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
                     </div>
                   ))}
                 </div>
               )}
-              {!isLoading && generatedQuestions.length > 0 && (
-                <ul className="space-y-4">
-                  {generatedQuestions.map((q, index) => (
-                    <li key={index} className="p-4 bg-secondary/30 rounded-md shadow-sm">
-                      <p className="text-md text-card-foreground whitespace-pre-line">
-                        <strong className="text-primary">Q{index + 1}:</strong> {q}
-                      </p>
-                    </li>
+              {!isLoading && generatedPairs.length > 0 && (
+                <Accordion type="single" collapsible className="w-full" defaultValue={generatedPairs.length > 0 ? "item-0" : undefined}>
+                  {generatedPairs.map((pair, index) => (
+                    <AccordionItem value={`item-${index}`} key={index}>
+                      <AccordionTrigger className="text-md hover:no-underline text-left">
+                        <strong className="text-primary mr-2">Q{index + 1}:</strong> {pair.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-muted-foreground pl-6 pr-2">
+                        <div className="flex items-start gap-2">
+                            <BookOpen className="h-4 w-4 text-accent mt-1 shrink-0" />
+                            <p className="whitespace-pre-line">{pair.answer}</p>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
                   ))}
-                </ul>
+                </Accordion>
               )}
             </CardContent>
           </Card>

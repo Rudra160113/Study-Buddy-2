@@ -27,7 +27,13 @@ export const GenerateCustomQuestionsInputSchema = z.object({
 });
 export type GenerateCustomQuestionsInput = z.infer<typeof GenerateCustomQuestionsInputSchema>;
 
+export const QuestionAnswerPairSchema = z.object({
+  question: z.string().describe('The generated open-ended question.'),
+  answer: z.string().describe('The corresponding answer to the question.'),
+});
+export type QuestionAnswerPair = z.infer<typeof QuestionAnswerPairSchema>;
+
 export const GenerateCustomQuestionsOutputSchema = z.object({
-  questions: z.array(z.string()).describe('An array of generated open-ended questions.'),
+  questionAnswerPairs: z.array(QuestionAnswerPairSchema).describe('An array of generated question-answer pairs.'),
 });
 export type GenerateCustomQuestionsOutput = z.infer<typeof GenerateCustomQuestionsOutputSchema>;
