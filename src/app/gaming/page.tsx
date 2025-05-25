@@ -2,7 +2,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Code, Gamepad2, School } from 'lucide-react';
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code } from 'lucide-react'; // Added more icons
 
 export default function GamingPage() {
   return (
@@ -13,48 +13,73 @@ export default function GamingPage() {
             Gaming Zone
           </h1>
           <p className="text-xl text-muted-foreground">
-            Learn through play!
+            Learn through play! Sharpen your knowledge with interactive study games.
           </p>
         </header>
 
-        <div className="flex justify-center"> {/* Centering the card */}
-          <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 w-full max-w-2xl"> {/* Max width for the card */}
-            <CardHeader>
-              <div className="flex items-center gap-3 mb-2">
-                <Gamepad2 className="h-10 w-10 text-accent" />
-                <CardTitle className="text-3xl">Study Games</CardTitle>
-              </div>
-              <CardDescription className="text-md">
-                Sharpen your knowledge with our collection of interactive study games. Fun and learning, all in one place! (Leaderboard coming soon!)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Select a game category to get started:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Button variant="outline" disabled className="w-full justify-start p-4 h-auto">
-                  <School className="mr-2 h-5 w-5" />
-                  <div>
-                    <p className="font-semibold">K-12 Games</p>
-                    <p className="text-xs text-muted-foreground">Math, Science, Vocab & more</p>
-                  </div>
-                </Button>
-                <Button variant="outline" disabled className="w-full justify-start p-4 h-auto">
-                  <Code className="mr-2 h-5 w-5" /> {/* Keeping Code icon for Logic Puzzles as it fits well */}
-                  <div>
-                    <p className="font-semibold">Logic Puzzles</p>
-                    <p className="text-xs text-muted-foreground">Boost critical thinking</p>
-                  </div>
-                </Button>
-                 {/* Add more game category placeholders here */}
-              </div>
-               <p className="text-sm text-center text-muted-foreground pt-4">
-                More games and features are under development!
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 w-full max-w-3xl mx-auto">
+          <CardHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <Gamepad2 className="h-10 w-10 text-accent" />
+              <CardTitle className="text-3xl">Study Games Arcade</CardTitle>
+            </div>
+            <CardDescription className="text-md">
+              Select a game category below to start playing and learning. Leaderboards coming soon!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-lg font-semibold text-center text-muted-foreground">
+              Choose a Category:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Puzzle className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">Logic Puzzles</p>
+                  <p className="text-sm text-muted-foreground">e.g., Sudoku, Brain Teasers</p>
+                </div>
+              </Button>
+              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Calculator className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">Math Challenges</p>
+                  <p className="text-sm text-muted-foreground">e.g., Super Sums, BODMAS</p>
+                </div>
+              </Button>
+              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <BookOpen className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">Subject Quizzes</p>
+                  <p className="text-sm text-muted-foreground">K-12 Topics, General Knowledge</p>
+                </div>
+              </Button>
+              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Brain className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">Memory Games</p>
+                  <p className="text-sm text-muted-foreground">Pattern recall, Flashcards</p>
+                </div>
+              </Button>
+              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Code className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">Coding Challenges (Basic)</p>
+                  <p className="text-sm text-muted-foreground">Introductory logic & syntax</p>
+                </div>
+              </Button>
+               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Gamepad2 className="mr-3 h-6 w-6 text-primary" />
+                <div>
+                  <p className="font-semibold text-lg">More Games Coming!</p>
+                  <p className="text-sm text-muted-foreground">Stay tuned for updates</p>
+                </div>
+              </Button>
+            </div>
+            <p className="text-sm text-center text-muted-foreground pt-4">
+              Each game will feature multiple levels and timers. Scores will be displayed on a leaderboard. (Features under development)
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );
