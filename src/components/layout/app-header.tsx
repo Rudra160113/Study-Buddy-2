@@ -1,3 +1,4 @@
+
 "use client";
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -14,6 +15,7 @@ const getPageTitle = (pathname: string): string => {
     case '/notes': return 'Note Repository';
     case '/resources': return 'Resource Suggester';
     case '/tips': return 'Time Management Tips';
+    case '/gaming': return 'Gaming Zone'; // Added title for gaming page
     default: return 'Study Buddy';
   }
 };

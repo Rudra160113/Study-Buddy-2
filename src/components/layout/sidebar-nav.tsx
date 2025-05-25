@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -14,7 +15,8 @@ import {
   Cpu,
   BookOpenText,
   Timer,
-  ListChecks
+  ListChecks,
+  Gamepad2, // Added Gamepad2 icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +26,7 @@ const navItems = [
   { href: '/notes', label: 'Note Repository', icon: FileText },
   { href: '/resources', label: 'Resource Suggester', icon: Cpu },
   { href: '/tips', label: 'Time Management Tips', icon: BookOpenText },
+  { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 }, // Added Gaming link
 ];
 
 export function SidebarNav() {
@@ -40,7 +43,7 @@ export function SidebarNav() {
                 'w-full justify-start'
               )}
               isActive={pathname === item.href}
-              tooltip={item.label} 
+              tooltip={item.label}
             >
               <item.icon className="h-5 w-5 mr-3" />
               <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
