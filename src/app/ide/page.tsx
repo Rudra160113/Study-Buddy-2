@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Play, Save, Settings2, TerminalSquare, Trash2, Bot, Terminal, Sparkles, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { interpretCode, type InterpretCodeInput, type InterpretCodeOutput } from '@/ai/flows/interpret-code-flow'; // New import
+import { interpretCode, type InterpretCodeInput, type InterpretCodeOutput } from '@/ai/flows/interpret-code-flow';
 
 const programmingLanguages = [
-  { value: "javascript", label: "JavaScript" },
+  { value: "javascript", label: "JavaScript (Executable)" },
   { value: "python", label: "Python" },
   { value: "html", label: "HTML" },
   { value: "css", label: "CSS" },
@@ -36,82 +36,91 @@ const programmingLanguages = [
 ];
 
 const gradeLevels = [
-  ...Array.from({ length: 11 }, (_, i) => ({ value: `Grade ${i + 2}`, label: `Grade ${i + 2}` })), // Grades 2-12
+  { value: "Grade 2", label: "Grade 2" },
+  { value: "Grade 3", label: "Grade 3" },
+  { value: "Grade 4", label: "Grade 4" },
+  { value: "Grade 5", label: "Grade 5" },
+  { value: "Grade 6", label: "Grade 6" },
+  { value: "Grade 7", label: "Grade 7" },
+  { value: "Grade 8", label: "Grade 8" },
+  { value: "Grade 9", label: "Grade 9" },
+  { value: "Grade 10", label: "Grade 10" },
+  { value: "Grade 11", label: "Grade 11" },
+  { value: "Grade 12", label: "Grade 12" },
   { value: "College/Adult", label: "College/Adult" },
 ];
 
 export default function IdePage() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
-  const [selectedGradeLevel, setSelectedGradeLevel] = useState("Grade 7"); // Default grade
-  const [code, setCode] = useState<string>("// Your code goes here...\nconsole.log('Hello from the IDE!');\n// Try returning a value, e.g., Math.random();");
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState("Grade 7");
+  const [code, setCode] = useState<string>("// Your code goes here...\nconsole.log('Hello from the IDE!');\n// For JavaScript, try returning a value, e.g., Math.random(); \n// For other languages, AI will interpret the code.");
   const [consoleOutput, setConsoleOutput] = useState<string>("Output and AI analysis will appear here...");
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Combined loading state
   const { toast } = useToast();
 
-  const handleRunCode = () => {
-    setIsExecuting(true);
+  const handleRunOrAnalyzeCode = async () => {
+    setIsProcessing(true);
     setConsoleOutput(""); // Clear previous output
+
     if (selectedLanguage === "javascript") {
+      setConsoleOutput("Executing JavaScript...");
       try {
         // eslint-disable-next-line no-new-func
         const result = new Function(code)();
         if (result !== undefined) {
-          setConsoleOutput(`Execution Result:\n${String(result)}`);
+          setConsoleOutput(`JavaScript Execution Result:\n${String(result)}`);
         } else {
-          setConsoleOutput("JavaScript executed successfully.\n(Note: Direct console.log output is not captured in this preview. Return a value to see it here.)");
+          setConsoleOutput("JavaScript executed successfully.\n(Note: Direct console.log output is not captured in this preview. Return a value to see it here, or use AI analysis for other languages.)");
         }
       } catch (error) {
         if (error instanceof Error) {
-          setConsoleOutput(`Execution Error:\n${error.message}`);
+          setConsoleOutput(`JavaScript Execution Error:\n${error.message}`);
         } else {
-          setConsoleOutput(`An unknown execution error occurred:\n${String(error)}`);
+          setConsoleOutput(`An unknown JavaScript execution error occurred:\n${String(error)}`);
         }
       }
     } else {
-      setConsoleOutput(`Running ${selectedLanguage} code is not supported in this preview environment.`);
-    }
-    setIsExecuting(false);
-  };
-
-  const handleAnalyzeCode = async () => {
-    if (!code.trim()) {
-      toast({ title: "Empty Code", description: "Please enter some code to analyze.", variant: "destructive" });
-      return;
-    }
-    setIsAnalyzing(true);
-    setConsoleOutput("AI is analyzing your code...");
-    try {
-      const input: InterpretCodeInput = { code, language: selectedLanguage, gradeLevel: selectedGradeLevel };
-      const result: InterpretCodeOutput = await interpretCode(input);
-      
-      let analysisText = `AI Code Analysis (for ${selectedGradeLevel}):\n\nInterpretation:\n${result.interpretation}`;
-      if (result.suggestions && result.suggestions.length > 0) {
-        analysisText += `\n\nSuggestions:\n- ${result.suggestions.join('\n- ')}`;
+      // AI Analysis for other languages
+      if (!code.trim()) {
+        toast({ title: "Empty Code", description: "Please enter some code to analyze.", variant: "destructive" });
+        setIsProcessing(false);
+        return;
       }
-      if (result.warnings && result.warnings.length > 0) {
-        analysisText += `\n\nWarnings:\n- ${result.warnings.join('\n- ')}`;
-      }
-      setConsoleOutput(analysisText);
-      toast({ title: "Analysis Complete", description: "AI has provided feedback on your code." });
+      setConsoleOutput(`AI is analyzing your ${selectedLanguage} code for ${selectedGradeLevel}...`);
+      try {
+        const input: InterpretCodeInput = { code, language: selectedLanguage, gradeLevel: selectedGradeLevel };
+        const result: InterpretCodeOutput = await interpretCode(input);
+        
+        let analysisText = `AI Code Analysis (${selectedLanguage} for ${selectedGradeLevel}):\n\nInterpretation:\n${result.interpretation}`;
+        if (result.suggestions && result.suggestions.length > 0) {
+          analysisText += `\n\nSuggestions:\n- ${result.suggestions.join('\n- ')}`;
+        }
+        if (result.warnings && result.warnings.length > 0) {
+          analysisText += `\n\nWarnings:\n- ${result.warnings.join('\n- ')}`;
+        }
+        setConsoleOutput(analysisText);
+        toast({ title: "AI Analysis Complete", description: `AI has provided feedback on your ${selectedLanguage} code.` });
 
-    } catch (error) {
-      console.error("Error interpreting code:", error);
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during AI analysis.";
-      setConsoleOutput(`AI Analysis Error:\n${errorMessage}`);
-      toast({
-        title: "AI Analysis Error",
-        description: "Could not get AI interpretation. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAnalyzing(false);
+      } catch (error) {
+        console.error("Error interpreting code with AI:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during AI analysis.";
+        setConsoleOutput(`AI Analysis Error (${selectedLanguage}):\n${errorMessage}`);
+        toast({
+          title: "AI Analysis Error",
+          description: "Could not get AI interpretation. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
+    setIsProcessing(false);
   };
 
   const handleClearConsole = () => {
     setConsoleOutput("");
   };
+
+  const runButtonText = selectedLanguage === 'javascript' ? 'Run JS' : 'AI Analyze Code';
+  const processingButtonText = selectedLanguage === 'javascript' ? 'Running JS...' : 'AI Analyzing...';
 
   return (
     <AppShell>
@@ -121,7 +130,7 @@ export default function IdePage() {
             Practice IDE
           </h1>
           <p className="text-xl text-muted-foreground">
-            Experiment with code, get AI explanations. (Basic JS execution & AI Analysis Preview)
+            Experiment with code. Run JavaScript or get AI explanations for other languages.
           </p>
         </header>
 
@@ -133,8 +142,8 @@ export default function IdePage() {
                 <CardTitle className="text-2xl">Code Editor</CardTitle>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                  <SelectTrigger className="w-auto min-w-[150px] h-8 text-xs">
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage} disabled={isProcessing}>
+                  <SelectTrigger className="w-auto min-w-[180px] h-8 text-xs">
                     <SelectValue placeholder="Select Language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -143,7 +152,7 @@ export default function IdePage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={selectedGradeLevel} onValueChange={setSelectedGradeLevel}>
+                <Select value={selectedGradeLevel} onValueChange={setSelectedGradeLevel} disabled={isProcessing}>
                   <SelectTrigger className="w-auto min-w-[120px] h-8 text-xs">
                     <SelectValue placeholder="Select Grade Level" />
                   </SelectTrigger>
@@ -159,22 +168,12 @@ export default function IdePage() {
                 <Button 
                   variant="default" 
                   size="sm" 
-                  className="h-8 text-xs bg-green-600 hover:bg-green-700"
-                  onClick={handleRunCode}
-                  disabled={isExecuting || isAnalyzing}
+                  className="h-8 text-xs bg-green-600 hover:bg-green-700 min-w-[120px]"
+                  onClick={handleRunOrAnalyzeCode}
+                  disabled={isProcessing || !code.trim()}
                 >
-                  {isExecuting ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Play className="mr-1.5 h-3.5 w-3.5" />}
-                  {isExecuting ? 'Running...' : 'Run'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 text-xs border-accent text-accent hover:bg-accent/10"
-                  onClick={handleAnalyzeCode}
-                  disabled={isAnalyzing || isExecuting}
-                >
-                  {isAnalyzing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-                   {isAnalyzing ? 'Analyzing...' : 'AI Analyze'}
+                  {isProcessing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : (selectedLanguage === 'javascript' ? <Play className="mr-1.5 h-3.5 w-3.5" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />)}
+                  {isProcessing ? processingButtonText : runButtonText}
                 </Button>
                  <Button variant="ghost" size="icon" disabled className="h-8 w-8">
                   <Settings2 className="h-4 w-4" />
@@ -186,21 +185,22 @@ export default function IdePage() {
             <div className="flex-grow flex flex-col md:flex-row h-full">
               <div className="w-full md:w-2/3 h-1/2 md:h-full flex flex-col border-r-0 md:border-r">
                 <Textarea
-                  placeholder="// Your code goes here... Type or paste and click 'Run' (JS only) or 'AI Analyze' for any selected language."
+                  placeholder="// Your code goes here... Type or paste and click 'Run JS' (for JavaScript) or 'AI Analyze Code' (for other languages)."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-sm font-mono focus-visible:ring-0 focus-visible:ring-offset-0"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
+                  disabled={isProcessing}
                 />
               </div>
               <div className="w-full md:w-1/3 h-1/2 md:h-full flex flex-col bg-secondary/20">
                 <div className="p-2 border-b flex justify-between items-center">
                     <h3 className="text-sm font-semibold text-muted-foreground">Console / AI Output</h3>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleClearConsole} title="Clear console" disabled={isExecuting || isAnalyzing}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleClearConsole} title="Clear console" disabled={isProcessing}>
                         <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                 </div>
                 <Textarea
-                  placeholder="Output and AI analysis will appear here..."
+                  placeholder="Output from JavaScript execution or AI analysis will appear here..."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-xs font-mono bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 whitespace-pre-wrap"
                   value={consoleOutput}
                   readOnly 
@@ -221,9 +221,9 @@ export default function IdePage() {
                 </div>
              </div>
             <p className="text-xs text-muted-foreground text-center w-full mt-2">
-              Note: Basic JavaScript execution & AI Code Analysis (for all selected languages) are enabled for preview. 
-              True multi-language execution, class-based feature restrictions, and advanced tools are conceptual.
-              The AI will attempt to tailor explanations based on the selected grade, particularly for users below Grade 9.
+              Note: Basic JavaScript execution is available. For other selected languages, AI will provide code analysis.
+              The AI will attempt to tailor explanations based on the selected grade.
+              True multi-language execution & advanced tools are conceptual.
             </p>
           </CardFooter>
         </Card>

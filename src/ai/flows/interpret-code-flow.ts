@@ -14,14 +14,14 @@ import { z } from 'genkit';
 const InterpretCodeInputSchema = z.object({
   code: z.string().describe('The code snippet to be interpreted.'),
   language: z.string().describe('The programming language of the code snippet (e.g., javascript, python, html, sql).'),
-  gradeLevel: z.string().describe('The grade level of the user (e.g., "Grade 5", "Grade 10", "College/Adult").'),
+  gradeLevel: z.string().describe('The grade level of the user (e.g., "Grade 5", "Grade 10", "College/Adult"). Indicates the target audience for the explanation complexity.'),
 });
 export type InterpretCodeInput = z.infer<typeof InterpretCodeInputSchema>;
 
 const InterpretCodeOutputSchema = z.object({
-  interpretation: z.string().describe('The AI-generated explanation and interpretation of the code.'),
-  suggestions: z.array(z.string()).optional().describe('Optional suggestions for improving the code or learning next steps.'),
-  warnings: z.array(z.string()).optional().describe('Optional warnings about potential issues in the code.'),
+  interpretation: z.string().describe('A concise, direct explanation of what the code does. This should be the primary output.'),
+  suggestions: z.array(z.string()).optional().describe('Optional: 1-2 direct suggestions for improvement or next steps. Empty if none.'),
+  warnings: z.array(z.string()).optional().describe('Optional: 1-2 direct warnings about potential errors or bad practices. Empty if none.'),
 });
 export type InterpretCodeOutput = z.infer<typeof InterpretCodeOutputSchema>;
 
@@ -33,25 +33,25 @@ const interpretPrompt = ai.definePrompt({
   name: 'interpretCodePrompt',
   input: { schema: InterpretCodeInputSchema },
   output: { schema: InterpretCodeOutputSchema },
-  prompt: `You are an expert Code Explainer AI. Your goal is to help students understand code.
-The user is at grade level: "{{gradeLevel}}".
-The code is written in: "{{language}}".
-The code to interpret is:
+  prompt: `Act as a direct code analysis tool.
+User Grade Level: "{{gradeLevel}}"
+Language: "{{language}}"
+Code:
 \`\`\`{{language}}
 {{{code}}}
 \`\`\`
 
-Please provide:
-1.  **Interpretation**: A clear explanation of what the code does.
-    *   If "{{gradeLevel}}" is below "Grade 9" (e.g., "Grade 2" through "Grade 8"), explain concepts in a very simple, age-appropriate manner. Avoid advanced programming paradigms, jargon, or overly complex details unless the code itself explicitly uses them or the user's prompt (within the code block if they added comments) specifically asks for it. Focus on the fundamental logic.
-    *   If "{{gradeLevel}}" is "Grade 9" or above, you can provide a more detailed and technical explanation, but still aim for clarity.
-2.  **Suggestions (Optional)**: If applicable, provide 1-2 brief suggestions for improvement, or what the user could try next with this code.
-3.  **Warnings (Optional)**: If there are any obvious simple errors or bad practices for a learner, mention them briefly.
+Analyze the code and provide the output ONLY in the specified JSON schema format containing 'interpretation', 'suggestions', and 'warnings'.
 
-Keep the entire response concise and helpful for a student.
-Structure your output as a JSON object matching the defined schema.
-If the code is very short or simple, focus on explaining the core concept it demonstrates for the given language.
-If no specific warnings or suggestions are apparent, return empty arrays for those fields.
+1.  **interpretation**: Provide a concise, direct explanation of what the code does.
+    *   If "{{gradeLevel}}" is below "Grade 9" (e.g., "Grade 2" through "Grade 8"), explain concepts in a very simple, age-appropriate manner. Focus on the fundamental logic. Avoid jargon.
+    *   If "{{gradeLevel}}" is "Grade 9" or above (e.g., "Grade 9", "College/Adult"), provide a more technical and detailed explanation, but maintain clarity.
+2.  **suggestions (optional array of strings)**: If applicable, provide 1-2 brief, direct suggestions for code improvement or what the user could try next. If none, provide an empty array.
+3.  **warnings (optional array of strings)**: If there are any obvious simple errors, bad practices for a learner, or potential issues, mention them briefly and directly. If none, provide an empty array.
+
+Do NOT include any conversational phrases, greetings, self-references, or any text outside the JSON structure requested by the output schema.
+If the code is very short or simple, focus on explaining the core concept it demonstrates for the given language and grade level.
+If the code is too complex to analyze meaningfully for the specified grade, or if it contains fundamental syntax errors preventing basic understanding, the 'interpretation' should state this briefly.
 `,
 });
 
@@ -62,7 +62,7 @@ const interpretCodeFlow = ai.defineFlow(
     outputSchema: InterpretCodeOutputSchema,
   },
   async (input) => {
-    // Basic check for grade level string format to help the AI a little
+    // Normalize grade level instruction for the AI, if needed, based on previous logic.
     let gradeInstruction = input.gradeLevel;
     if (input.gradeLevel.toLowerCase().includes("grade")) {
         const gradeNum = parseInt(input.gradeLevel.replace(/\D/g, ''), 10);
@@ -75,14 +75,13 @@ const interpretCodeFlow = ai.defineFlow(
         }
     }
 
-
     const { output } = await interpretPrompt({ ...input, gradeLevel: gradeInstruction });
 
     if (!output) {
       throw new Error("AI failed to generate code interpretation.");
     }
     return {
-        interpretation: output.interpretation || "Could not interpret the code.",
+        interpretation: output.interpretation || "Could not interpret the code at this time.",
         suggestions: output.suggestions || [],
         warnings: output.warnings || [],
     };
