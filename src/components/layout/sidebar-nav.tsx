@@ -20,7 +20,8 @@ import {
   CodeXml, 
   TerminalSquare,
   Mail,
-  Smile, // Added Smile icon
+  Smile,
+  FlaskConical, // Added FlaskConical icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -33,7 +34,8 @@ const navItems = [
   { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
   { href: '/coding', label: 'Coding Zone', icon: CodeXml },
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
-  { href: '/jokes', label: 'Jokes', icon: Smile }, // New "Jokes" item
+  { href: '/jokes', label: 'Jokes', icon: Smile },
+  { href: '/science-facts', label: 'Science Facts', icon: FlaskConical }, // New "Science Facts" item
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 

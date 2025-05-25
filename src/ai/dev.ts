@@ -14,11 +14,13 @@ import '@/ai/flows/generate-pattern-image-flow.ts';
 import '@/ai/flows/generate-hindi-riddle-flow.ts';
 import '@/ai/flows/generate-logic-riddle-flow.ts';
 import '@/ai/flows/generate-k12-quiz-question-flow.ts';
-import '@/ai/flows/generate-hindi-joke-flow.ts'; // Added new Hindi joke flow
+import '@/ai/flows/generate-hindi-joke-flow.ts';
+import '@/ai/flows/generate-science-facts-flow.ts'; // Added new science facts flow
 
     
 
     
+
 
 
 
