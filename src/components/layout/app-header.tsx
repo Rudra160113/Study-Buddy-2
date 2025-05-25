@@ -30,7 +30,6 @@ const getPageTitle = (pathname: string): string => {
     case '/jokes': return 'Jokes Corner';
     case '/science-facts': return 'Science Facts';
     case '/science-news': return 'Science Highlights';
-    case '/hindi-news': return 'Hindi News'; // Added Hindi News title
     case '/custom-quiz-generator': return 'Custom Question Generator';
     case '/query-handler': return 'Query Handler';
     case '/jurassic-world': return 'Jurassic World';
