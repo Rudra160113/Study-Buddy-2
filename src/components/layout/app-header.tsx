@@ -4,7 +4,7 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, ChevronLeft } from 'lucide-react'; 
+import { Sun, Moon, ChevronLeft, Newspaper } from 'lucide-react'; 
 import Link from 'next/link'; 
 // import { useTheme } from 'next-themes'; 
 // import { useEffect, useState } from 'react';
