@@ -5,7 +5,7 @@ import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Laugh, RefreshCw } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react'; // Added useEffect
 import { useToast } from '@/hooks/use-toast';
 import { generateHindiJoke, type GenerateHindiJokeOutput } from '@/ai/flows/generate-hindi-joke-flow';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,10 +34,10 @@ export default function JokesPage() {
     }
   }, [toast]);
 
-  // Fetch a joke on initial load
-  useState(() => {
+  // Fetch a joke on initial load using useEffect
+  useEffect(() => {
     fetchNewJoke();
-  });
+  }, [fetchNewJoke]); // fetchNewJoke is memoized by useCallback
 
   return (
     <AppShell>
