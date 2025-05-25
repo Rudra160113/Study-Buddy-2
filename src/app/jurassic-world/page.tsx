@@ -43,99 +43,107 @@ export default function JurassicWorldPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchAndCacheCreatureImage = useCallback(async (creatureName: string, index: number) => {
+  // This function now only fetches the image and updates the React state for that specific creature.
+  // It no longer writes to localStorage directly.
+  const fetchIndividualCreatureImage = useCallback(async (creatureName: string, index: number): Promise<string | null> => {
     setCreatures(prev => prev.map((c, i) => i === index ? { ...c, isLoading: true, error: false } : c));
     try {
       const result: GenerateCreatureImageOutput = await generateCreatureImage({ creatureName });
-      setCreatures(prev => {
-        const updated = prev.map((c, i) => i === index ? { ...c, imageUrl: result.imageUrl, isLoading: false } : c);
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated.map(cr => ({ name: cr.name, imageUrl: cr.imageUrl })))); // Only store name and imageUrl
-        return updated;
-      });
+      setCreatures(prev => prev.map((c, i) => i === index ? { ...c, imageUrl: result.imageUrl, isLoading: false } : c));
       return result.imageUrl;
     } catch (error) {
       console.error(`Failed to generate image for ${creatureName}:`, error);
       toast({ title: "Image Generation Error", description: `Could not load image for: ${creatureName}`, variant: "destructive" });
-      setCreatures(prev => {
-         const updated = prev.map((c, i) => i === index ? { ...c, imageUrl: null, isLoading: false, error: true } : c);
-         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated.map(cr => ({ name: cr.name, imageUrl: cr.imageUrl }))));
-         return updated;
-      });
+      setCreatures(prev => prev.map((c, i) => i === index ? { ...c, imageUrl: null, isLoading: false, error: true } : c));
       return null;
     }
   }, [toast]);
 
   useEffect(() => {
-    const loadCreatures = async () => {
+    const loadCreaturesAndPersist = async () => {
       setIsInitialLoading(true);
-      const cachedDataRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
-      let needsSave = false;
+      let initialCreatureStates: JurassicCreature[] = PREDEFINED_CREATURES.map(name => ({
+        name,
+        imageUrl: null,
+        isLoading: false,
+        error: false
+      }));
+      let newImagesWereFetchedThisSession = false;
 
-      if (cachedDataRaw) {
-        try {
-          const cachedCreatures: Array<{ name: string, imageUrl: string | null }> = JSON.parse(cachedDataRaw);
-          // Create a map for quick lookup
-          const cachedMap = new Map(cachedCreatures.map(c => [c.name, c.imageUrl]));
-          
-          let currentCreatures = PREDEFINED_CREATURES.map(name => ({
+      try {
+        const cachedDataRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (cachedDataRaw) {
+          const cachedItems: Array<{ name: string, imageUrl: string | null }> = JSON.parse(cachedDataRaw);
+          const cachedMap = new Map(cachedItems.map(item => [item.name, item.imageUrl]));
+          initialCreatureStates = PREDEFINED_CREATURES.map(name => ({
             name,
             imageUrl: cachedMap.get(name) || null,
             isLoading: false,
             error: false
           }));
-
-          setCreatures(currentCreatures);
-
-          // Check for any creatures in predefined list that are not in cache or have no image
-          // and fetch them one by one
-          for (let i = 0; i < currentCreatures.length; i++) {
-            if (!currentCreatures[i].imageUrl) {
-                await fetchAndCacheCreatureImage(currentCreatures[i].name, i);
-                needsSave = true; // Mark that we fetched something and need to re-save
-            }
-          }
-        } catch (e) {
-          console.error("Failed to parse cached creature data, clearing cache.", e);
-          localStorage.removeItem(LOCAL_STORAGE_KEY);
-          // Fall through to generate all
-           for (let i = 0; i < PREDEFINED_CREATURES.length; i++) {
-            await fetchAndCacheCreatureImage(PREDEFINED_CREATURES[i], i);
-          }
-          needsSave = true;
         }
-      } else {
-        // No cache, generate all images one by one
-        for (let i = 0; i < PREDEFINED_CREATURES.length; i++) {
-          await fetchAndCacheCreatureImage(PREDEFINED_CREATURES[i], i);
+      } catch (e) {
+        console.error("Failed to parse cached creature data. Clearing cache.", e);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        // initialCreatureStates remains as default (all imageUrls null)
+      }
+
+      // Set creatures for initial display based on cache or defaults
+      setCreatures(initialCreatureStates);
+
+      // Create a mutable copy to track fetched URLs for saving
+      const creaturesForStorage = initialCreatureStates.map(c => ({ name: c.name, imageUrl: c.imageUrl }));
+
+      // Sequentially fetch images for creatures that don't have one
+      for (let i = 0; i < initialCreatureStates.length; i++) {
+        if (!initialCreatureStates[i].imageUrl) {
+          const fetchedUrl = await fetchIndividualCreatureImage(initialCreatureStates[i].name, i);
+          if (fetchedUrl) {
+            creaturesForStorage[i].imageUrl = fetchedUrl;
+            newImagesWereFetchedThisSession = true;
+          } else {
+            // Ensure error state from fetchIndividualCreatureImage is reflected if needed for storage
+            creaturesForStorage[i].imageUrl = null; 
+          }
         }
-        needsSave = true;
       }
       
-      // Final save if any new images were fetched or cache was initialized
-      if (needsSave) {
-        // The fetchAndCacheCreatureImage already saves, but an explicit save here
-        // based on the final state might be good if logic changes.
-        // For now, it's somewhat redundant if fetchAndCache... always saves the whole list.
+      // Save to localStorage ONCE after all fetches are done for this load cycle,
+      // but only if new images were fetched or cache was initially empty.
+      if (newImagesWereFetchedThisSession || !localStorage.getItem(LOCAL_STORAGE_KEY)) {
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(creaturesForStorage));
+        } catch (e: any) {
+          if (e.name === 'QuotaExceededError') {
+            toast({
+              title: "Storage Full",
+              description: "Browser storage is full. Cannot save all creature images. Some images may not persist.",
+              variant: "destructive",
+              duration: 7000,
+            });
+          } else {
+            console.error("Failed to save to localStorage:", e);
+          }
+        }
       }
       setIsInitialLoading(false);
     };
 
-    loadCreatures();
-  }, [fetchAndCacheCreatureImage]); // fetchAndCacheCreatureImage is stable due to useCallback
+    loadCreaturesAndPersist();
+  }, [fetchIndividualCreatureImage, toast]); // fetchIndividualCreatureImage is stable due to useCallback
 
   const handleRefreshAllImages = () => {
-    const confirmRefresh = window.confirm("Are you sure you want to refresh all images? This will clear existing images and regenerate them, which may take some time.");
+    const confirmRefresh = window.confirm("Are you sure you want to refresh all images? This will clear existing images and regenerate them, which may take some time and browser resources.");
     if (confirmRefresh) {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
-      // Re-trigger the loadCreatures effect by changing a dependency or calling it directly
-      // For simplicity, we can just reload the state, which will trigger the useEffect
+      // Re-trigger the loadCreaturesAndPersist effect by resetting state that leads to re-fetching
       setCreatures(PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false })));
-      setIsInitialLoading(true); // This will make useEffect run again
-      // The useEffect will then handle fetching.
+      // The useEffect will run again due to state change and internal logic.
     }
   };
 
-  if (isInitialLoading && creatures.every(c => !c.imageUrl && !c.error)) {
+
+  if (isInitialLoading && creatures.every(c => !c.imageUrl && !c.error && !c.isLoading)) {
     return (
       <AppShell>
         <div className="container mx-auto py-8 space-y-8">
@@ -212,7 +220,7 @@ export default function JurassicWorldPage() {
           ))}
         </div>
          <p className="text-center text-xs text-muted-foreground mt-4">
-            Images generated by AI. Refreshing all images will clear the local cache and re-fetch from the AI.
+            Images generated by AI. Refreshing all images will clear the local cache and re-fetch from the AI. Large images may exceed browser storage limits.
         </p>
       </div>
     </AppShell>
