@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Calculator, Check, Clock, RefreshCw, Trophy, TrendingUp, Loader2, Brain } from 'lucide-react';
+import { Calculator, Check, Clock, RefreshCw, Trophy, TrendingUp, Loader2, Brain, ListOrdered } from 'lucide-react';
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateMathWordProblem, type GenerateMathWordProblemInput, type GenerateMathWordProblemOutput } from '@/ai/flows/generate-math-word-problem-flow';
@@ -17,6 +17,15 @@ interface CurrentProblemState {
   answer: number;
 }
 
+interface LeaderboardEntry {
+  playerName: string;
+  score: number;
+  date: string; // ISO string
+}
+
+const MAX_LEADERBOARD_ENTRIES = 5;
+const LEADERBOARD_KEY = 'superSumsLeaderboard';
+
 export default function SuperSumsPage() {
   const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
@@ -26,15 +35,66 @@ export default function SuperSumsPage() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [isLoadingProblem, setIsLoadingProblem] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (!isClient) return;
+    try {
+      const storedLeaderboard = localStorage.getItem(LEADERBOARD_KEY);
+      if (storedLeaderboard) {
+        setLeaderboard(JSON.parse(storedLeaderboard));
+      }
+    } catch (error) {
+      console.error("Failed to load leaderboard from localStorage", error);
+      setLeaderboard([]); // Fallback to empty
+    }
+  }, [isClient]);
+
+  const saveScoreToLeaderboard = useCallback((finalScore: number) => {
+    if (!isClient) return;
+    
+    // Prevent saving score if game hasn't really started or score is 0 and no problem was attempted
+    if (finalScore === 0 && level === 1 && !currentProblem) {
+        // Could add a toast or log here if needed, but for now just don't save.
+        return;
+    }
+
+    const newEntry: LeaderboardEntry = {
+      playerName: `Player ${Math.floor(100 + Math.random() * 900)}`, // Simple placeholder name
+      score: finalScore,
+      date: new Date().toISOString(),
+    };
+
+    try {
+      // Use a functional update for setLeaderboard if it depends on previous state
+      // to ensure we have the latest version from localStorage if multiple saves happen quickly
+      // (though unlikely here)
+      setLeaderboard(prevLeaderboard => {
+        const currentLeaderboard = [...prevLeaderboard, newEntry];
+        currentLeaderboard.sort((a, b) => b.score - a.score || new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by score, then by date
+        const updatedLeaderboard = currentLeaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
+        localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(updatedLeaderboard));
+        return updatedLeaderboard;
+      });
+    } catch (error) {
+      console.error("Failed to save leaderboard to localStorage", error);
+      toast({
+          title: "Leaderboard Error",
+          description: "Could not save your score to the local leaderboard.",
+          variant: "destructive"
+      })
+    }
+  }, [isClient, toast, currentProblem, level]);
+
+
   const fetchNewProblem = useCallback(async (currentLevel: number) => {
     setIsLoadingProblem(true);
-    setCurrentProblem(null); // Clear old problem
+    setCurrentProblem(null); 
     try {
       const problemData = await generateMathWordProblem({ level: currentLevel });
       setCurrentProblem({
@@ -48,7 +108,7 @@ export default function SuperSumsPage() {
         description: "Could not fetch a new word problem. Please try again or restart the game.",
         variant: "destructive",
       });
-      setCurrentProblem({ problemStatement: "Error: Could not load problem.", answer: 0 });
+      setCurrentProblem({ problemStatement: "Error: Could not load problem. Click 'Skip' or restart.", answer: 0 });
     } finally {
       setIsLoadingProblem(false);
     }
@@ -60,8 +120,6 @@ export default function SuperSumsPage() {
     }
   }, [isGameActive, level, fetchNewProblem]);
 
-
-  // Timer logic
   useEffect(() => {
     if (!isGameActive || timeLeft <= 0) return;
     const timerId = setInterval(() => {
@@ -70,18 +128,22 @@ export default function SuperSumsPage() {
     return () => clearInterval(timerId);
   }, [isGameActive, timeLeft]);
 
-  // Handle game over when time runs out
+  const handleGameOver = useCallback((finalScore: number, message: string, variant: "default" | "destructive" = "default") => {
+    setIsGameActive(false);
+    saveScoreToLeaderboard(finalScore);
+    toast({
+      title: "Game Over!",
+      description: `${message} Your final score is ${finalScore}. Click 'Start Game' to play again.`,
+      variant: variant,
+      duration: 7000,
+    });
+  }, [saveScoreToLeaderboard, toast]);
+
   useEffect(() => {
     if (timeLeft === 0 && isGameActive) {
-      setIsGameActive(false);
-      toast({
-        title: "Time's Up!",
-        description: `Your final score is ${score}. Great effort! Click 'Start Game' to play again.`,
-        variant: "default",
-        duration: 7000,
-      });
+      handleGameOver(score, "Time's Up!");
     }
-  }, [timeLeft, isGameActive, score, toast]);
+  }, [timeLeft, isGameActive, score, handleGameOver]);
 
 
   const handleStartGame = () => {
@@ -89,6 +151,7 @@ export default function SuperSumsPage() {
     setScore(0);
     setTimeLeft(10 * 60);
     setUserAnswer('');
+    setCurrentProblem(null); // Clear any existing problem before fetching new
     setIsGameActive(true);
     toast({ title: "Game Started!", description: "Solve the word problems. Timer resets on correct answers!" });
   };
@@ -104,12 +167,12 @@ export default function SuperSumsPage() {
     }
 
     if (answerNum === currentProblem.answer) {
-      const newScore = score + 10;
+      const newScore = score + (10 * level); // Score based on level
       setScore(newScore);
-      setTimeLeft(10 * 60); // Reset timer on correct answer
-      toast({ title: "Correct!", description: "+10 points! Timer reset.", className: "bg-green-500 text-white" });
+      setTimeLeft(10 * 60); 
+      toast({ title: "Correct!", description: `+${10 * level} points! Timer reset.`, className: "bg-green-500 text-white" });
       
-      if (newScore % 50 === 0 && newScore > 0) { 
+      if (level < 100 && newScore % (50 * level) === 0 && newScore > 0 ) { 
         const newLevel = level + 1;
         setLevel(newLevel);
         toast({ title: "Level Up!", description: `You've reached level ${newLevel}!` });
@@ -117,13 +180,7 @@ export default function SuperSumsPage() {
         fetchNewProblem(level); 
       }
     } else {
-      setIsGameActive(false); // Game over on incorrect answer
-      toast({ 
-        title: "Incorrect. Game Over!", 
-        description: `The correct answer was ${currentProblem.answer}. Your final score: ${score}. Click 'Start Game' to play again.`, 
-        variant: "destructive",
-        duration: 7000,
-      });
+      handleGameOver(score, `Incorrect. The correct answer was ${currentProblem.answer}.`, "destructive");
     }
     setUserAnswer('');
   };
@@ -133,7 +190,7 @@ export default function SuperSumsPage() {
     toast({ title: "Problem Skipped", description: "Here's a new one!"});
     fetchNewProblem(level);
     setUserAnswer('');
-    // Optionally, you could penalize score or time for skipping.
+    setScore(prevScore => Math.max(0, prevScore - (5 * level))); // Penalty for skipping
   }
 
   const formatTime = (seconds: number) => {
@@ -147,6 +204,7 @@ export default function SuperSumsPage() {
         <AppShell>
             <div className="container mx-auto py-8 text-center">
                 <p>Loading Super Sums...</p>
+                <Skeleton className="h-64 w-full max-w-md mx-auto mt-4" />
             </div>
         </AppShell>
     );
@@ -160,7 +218,7 @@ export default function SuperSumsPage() {
             Super Sums: Word Challenge
           </h1>
           <p className="text-xl text-muted-foreground">
-            Solve AI-generated word problems. Timer resets on correct answers!
+            Solve AI-generated word problems. Timer resets on correct answers! Difficulty scales with level.
           </p>
         </header>
 
@@ -171,23 +229,28 @@ export default function SuperSumsPage() {
                 <Brain className="h-10 w-10 text-accent" />
                 Ready to Play?
               </CardTitle>
-              {score > 0 && timeLeft > 0 && ( // Show final score if game ended prematurely by wrong answer but time wasn't up
+              {score > 0 && (
                  <CardDescription className="text-lg font-semibold">
                     Last Score: {score}
+                 </CardDescription>
+              )}
+               {level > 1 && (
+                 <CardDescription className="text-md text-muted-foreground">
+                    Reached Level: {level}
                  </CardDescription>
               )}
             </CardHeader>
             <CardContent>
               <p className="text-lg text-muted-foreground mb-6">
-                You'll get 10 minutes per question. Timer resets if you're correct!
-                Answer incorrectly, and the game ends.
+                You get 10 minutes per question. Timer resets if you're correct!
+                Answer incorrectly, and the game ends. Difficulty increases as you level up.
               </p>
               <Button onClick={handleStartGame} size="lg" className="bg-primary hover:bg-primary/90 w-full">
                 Start Game
               </Button>
             </CardContent>
             <CardFooter>
-                <p className="text-xs text-muted-foreground mx-auto">Difficulty increases as you level up.</p>
+                <p className="text-xs text-muted-foreground mx-auto">Max 100 levels. Score increases with level difficulty.</p>
             </CardFooter>
           </Card>
         ) : (
@@ -200,18 +263,19 @@ export default function SuperSumsPage() {
                 <div className="font-semibold text-accent flex items-center gap-1">
                   <Trophy className="h-5 w-5" /> Score: {score}
                 </div>
-                <div className={`font-semibold flex items-center gap-1 ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-destructive'}`}>
+                <div className={`font-semibold flex items-center gap-1 ${timeLeft < 60 ? 'text-destructive animate-pulse' : 'text-destructive/80'}`}>
                   <Clock className="h-5 w-5" /> Time: {formatTime(timeLeft)}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 text-center min-h-[150px]">
+            <CardContent className="space-y-6 text-center min-h-[200px]">
               {isLoadingProblem && (
                 <div className="space-y-3 py-4">
                     <Skeleton className="h-6 w-3/4 mx-auto" />
                     <Skeleton className="h-5 w-full mx-auto" />
-                    <Skeleton className="h-5 w-5/6 mx-auto" />
-                    <p className="text-sm text-muted-foreground mt-2">AI is crafting a new problem...</p>
+                    <Skeleton className="h-5 w-5/6 mx-auto mb-3" />
+                    <Loader2 className="h-7 w-7 animate-spin text-primary mx-auto" />
+                    <p className="text-sm text-muted-foreground mt-2">AI is crafting a new problem for Level {level}...</p>
                 </div>
               )}
               {!isLoadingProblem && currentProblem && (
@@ -221,8 +285,11 @@ export default function SuperSumsPage() {
                   </p>
                 </div>
               )}
-              {!isLoadingProblem && !currentProblem && (
-                 <p className="text-muted-foreground py-4">Waiting for problem...</p>
+              {!isLoadingProblem && !currentProblem && !isGameActive && (
+                 <p className="text-muted-foreground py-4">Game Over. Click 'Start Game' to play again.</p>
+              )}
+               {!isLoadingProblem && !currentProblem && isGameActive && (
+                 <p className="text-muted-foreground py-4">Preparing your first problem...</p>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -246,28 +313,51 @@ export default function SuperSumsPage() {
             </CardContent>
             <CardFooter className="pt-4 flex-col items-center gap-2">
               <Button variant="outline" onClick={handleSkipProblem} disabled={timeLeft <=0 || isLoadingProblem || !currentProblem}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Skip Problem
+                <RefreshCw className="mr-2 h-4 w-4" /> Skip Problem (-{5 * level} pts)
               </Button>
                <p className="text-xs text-muted-foreground pt-2 text-center">
-                Math word problems generated by AI. Difficulty increases with level.
+                Math word problems generated by AI.
               </p>
             </CardFooter>
           </Card>
         )}
+        
         <Card className="shadow-lg max-w-md mx-auto mt-8">
             <CardHeader>
-                <CardTitle className="text-xl">Leaderboard (Coming Soon)</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-2"><ListOrdered className="h-6 w-6 text-accent"/>Leaderboard (Top {MAX_LEADERBOARD_ENTRIES})</CardTitle>
+                {leaderboard.length === 0 && isClient && <CardDescription>No scores yet. Be the first!</CardDescription>}
+                 {!isClient && <CardDescription>Loading leaderboard...</CardDescription>}
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground text-center">Top scores will be displayed here!</p>
-                {/* Static Leaderboard Placeholder */}
-                <div className="space-y-2 mt-4">
-                    <div className="flex justify-between p-2 bg-secondary/30 rounded"><span>Player1</span><span>1200 pts</span></div>
-                    <div className="flex justify-between p-2 bg-secondary/30 rounded"><span>Player2</span><span>950 pts</span></div>
-                    <div className="flex justify-between p-2 bg-secondary/30 rounded"><span>Player3</span><span>700 pts</span></div>
-                </div>
+                {isClient && leaderboard.length > 0 ? (
+                  <div className="space-y-3">
+                    {leaderboard.map((entry, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                          <span className={`font-bold text-lg w-6 text-center rounded-full ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-slate-500' : index === 2 ? 'text-orange-700' : 'text-primary'}`}>
+                            {index + 1}
+                          </span>
+                          <span className="font-medium text-card-foreground">{entry.playerName}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-semibold text-accent text-lg">{entry.score} pts</span>
+                          <p className="text-xs text-muted-foreground">{new Date(entry.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : isClient ? (
+                  <p className="text-muted-foreground text-center py-4">Play a game to see your score here!</p>
+                ) : (
+                  <div className="space-y-2 py-4">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                )}
             </CardContent>
         </Card>
+
       </div>
     </AppShell>
   );
