@@ -3,7 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code } from 'lucide-react';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
 
 export default function GamingPage() {
   return (
@@ -42,12 +42,14 @@ export default function GamingPage() {
                   </div>
                 </Link>
               </Button>
-              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
-                <Calculator className="mr-3 h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-semibold text-lg">Math Challenges</p>
-                  <p className="text-sm text-muted-foreground">e.g., Super Sums, BODMAS</p>
-                </div>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/super-sums">
+                  <Calculator className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Math Challenges</p>
+                    <p className="text-sm text-muted-foreground">e.g., Super Sums, BODMAS</p>
+                  </div>
+                </Link>
               </Button>
               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <BookOpen className="mr-3 h-6 w-6 text-primary" />

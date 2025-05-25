@@ -18,6 +18,7 @@ const getPageTitle = (pathname: string): string => {
     case '/tips': return 'Time Management Tips';
     case '/gaming': return 'Gaming Zone';
     case '/gaming/sudoku': return 'Sudoku Challenge';
+    case '/gaming/super-sums': return 'Super Sums Challenge';
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
     default: return 'Study Buddy';
