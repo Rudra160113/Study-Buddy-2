@@ -9,9 +9,11 @@ import '@/ai/flows/interpret-code-flow.ts';
 import '@/ai/flows/suggest-code-correction-flow.ts';
 import '@/ai/flows/generate-math-word-problem-flow.ts';
 import '@/ai/flows/generate-bodmas-problem-flow.ts';
-import '@/ai/flows/generate-dice-probability-problem-flow.ts'; // Added new dice probability flow
+import '@/ai/flows/generate-dice-probability-problem-flow.ts';
+import '@/ai/flows/generate-pattern-image-flow.ts'; // Added new pattern image flow
 
     
 
     
+
 

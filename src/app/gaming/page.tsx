@@ -2,7 +2,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare, Dices } from 'lucide-react'; // Added Dices
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare, Dices, Eye } from 'lucide-react'; // Added Eye for Pattern Recall
 import Link from 'next/link';
 
 export default function GamingPage() {
@@ -69,6 +69,15 @@ export default function GamingPage() {
                   </div>
                 </Link>
               </Button>
+               <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/pattern-recall">
+                  <Eye className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Pattern Recall</p>
+                    <p className="text-sm text-muted-foreground">AI Image Memory</p>
+                  </div>
+                </Link>
+              </Button>
               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <BookOpen className="mr-3 h-6 w-6 text-primary" />
                 <div>
@@ -76,6 +85,7 @@ export default function GamingPage() {
                   <p className="text-sm text-muted-foreground">K-12 Topics, General Knowledge</p>
                 </div>
               </Button>
+              {/* 
               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <Brain className="mr-3 h-6 w-6 text-primary" />
                 <div>
@@ -90,6 +100,7 @@ export default function GamingPage() {
                   <p className="text-sm text-muted-foreground">Introductory logic & syntax</p>
                 </div>
               </Button>
+              */}
             </div>
             <p className="text-sm text-center text-muted-foreground pt-4">
               Each game features multiple levels and timers. Some games include leaderboards. (More games coming soon!)
@@ -100,4 +111,3 @@ export default function GamingPage() {
     </AppShell>
   );
 }
-
