@@ -6,13 +6,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Puzzle, RotateCcw, Timer, CheckCircle, Lightbulb } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Puzzle, RotateCcw, Timer, CheckCircle, Lightbulb, RefreshCw } from 'lucide-react'; // Added RefreshCw for New Game
+import { useState, useEffect, useCallback } from 'react';
 
-const initialGrid = Array(9).fill(null).map(() => Array(9).fill(''));
+// Sample Sudoku puzzle (0 or '' for empty cells)
+const samplePuzzleInitial: (number | string)[][] = [
+  [5, 3, '', '', 7, '', '', '', ''],
+  [6, '', '', 1, 9, 5, '', '', ''],
+  ['', 9, 8, '', '', '', '', 6, ''],
+  [8, '', '', '', 6, '', '', '', 3],
+  [4, '', '', 8, '', 3, '', '', 1],
+  [7, '', '', '', 2, '', '', '', 6],
+  ['', 6, '', '', '', '', 2, 8, ''],
+  ['', '', '', 4, 1, 9, '', '', 5],
+  ['', '', '', '', 8, '', '', 7, 9]
+];
+
+const convertPuzzleToStringGrid = (puzzle: (number | string)[][]): string[][] => {
+  return puzzle.map(row => row.map(cell => (cell === 0 ? '' : String(cell))));
+};
 
 export default function SudokuPage() {
-  const [grid, setGrid] = useState<string[][]>(initialGrid);
+  const [currentPuzzle, setCurrentPuzzle] = useState<(number | string)[][]>(samplePuzzleInitial);
+  const [grid, setGrid] = useState<string[][]>(() => convertPuzzleToStringGrid(currentPuzzle));
   const [timer, setTimer] = useState(0); // Placeholder for timer in seconds
   const [isClient, setIsClient] = useState(false);
 
@@ -25,7 +41,14 @@ export default function SudokuPage() {
     // return () => clearInterval(interval);
   }, []);
 
+  const isInitialCell = useCallback((row: number, col: number) => {
+    return currentPuzzle[row][col] !== '' && currentPuzzle[row][col] !== 0;
+  }, [currentPuzzle]);
+
   const handleInputChange = (row: number, col: number, value: string) => {
+    if (isInitialCell(row, col)) {
+      return; // Don't allow changes to initial cells
+    }
     if (/^[1-9]?$/.test(value)) { // Allow only single digits 1-9 or empty string
       const newGrid = grid.map((r, rowIndex) =>
         r.map((cell, colIndex) => {
@@ -37,6 +60,10 @@ export default function SudokuPage() {
       );
       setGrid(newGrid);
     }
+  };
+
+  const resetGrid = () => {
+    setGrid(convertPuzzleToStringGrid(currentPuzzle));
   };
 
   const formatTime = (seconds: number) => {
@@ -82,33 +109,42 @@ export default function SudokuPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-9 gap-0.5 bg-muted-foreground rounded overflow-hidden shadow-md aspect-square">
               {grid.map((row, rowIndex) =>
-                row.map((cell, colIndex) => (
-                  <Input
-                    key={`${rowIndex}-${colIndex}`}
-                    type="text"
-                    maxLength={1}
-                    value={cell}
-                    onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-                    className={
-                      `aspect-square text-2xl text-center font-semibold rounded-none border-muted-foreground focus:z-10
-                      bg-card hover:bg-secondary/50 transition-colors
-                      ${(colIndex + 1) % 3 === 0 && colIndex < 8 ? 'border-r-2 border-r-muted-foreground' : ''}
-                      ${(rowIndex + 1) % 3 === 0 && rowIndex < 8 ? 'border-b-2 border-b-muted-foreground' : ''}
-                      ${colIndex % 3 !== 0 ? 'border-l' : ''}
-                      ${rowIndex % 3 !== 0 ? 'border-t' : ''}
-                      `
-                    }
-                  />
-                ))
+                row.map((cell, colIndex) => {
+                  const initial = isInitialCell(rowIndex, colIndex);
+                  return (
+                    <Input
+                      key={`${rowIndex}-${colIndex}`}
+                      type="text"
+                      maxLength={1}
+                      value={cell}
+                      readOnly={initial}
+                      onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+                      className={
+                        `aspect-square text-2xl text-center font-semibold rounded-none border-muted-foreground focus:z-10
+                        ${initial 
+                          ? 'bg-secondary/30 text-card-foreground pointer-events-none' 
+                          : 'bg-card hover:bg-secondary/50 text-primary focus:bg-secondary/60 focus:ring-2 focus:ring-primary/50'}
+                        ${(colIndex + 1) % 3 === 0 && colIndex < 8 ? 'border-r-2 border-r-muted-foreground' : ''}
+                        ${(rowIndex + 1) % 3 === 0 && rowIndex < 8 ? 'border-b-2 border-b-muted-foreground' : ''}
+                        ${colIndex % 3 !== 0 ? 'border-l' : ''}
+                        ${rowIndex % 3 !== 0 ? 'border-t' : ''}
+                        `
+                      }
+                    />
+                  );
+                })
               )}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <Button variant="outline" disabled className="w-full">
-                    <RotateCcw className="mr-2 h-4 w-4" /> New Game
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Button variant="outline" disabled className="w-full sm:col-span-1">
+                    <RefreshCw className="mr-2 h-4 w-4" /> New Game
+                </Button>
+                <Button variant="outline" onClick={resetGrid} className="w-full sm:col-span-1">
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset
                 </Button>
                 <Select disabled>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full sm:col-span-2">
                     <SelectValue placeholder="Difficulty: Easy" />
                   </SelectTrigger>
                   <SelectContent>
@@ -120,14 +156,14 @@ export default function SudokuPage() {
                  <Button variant="outline" disabled className="w-full">
                     <CheckCircle className="mr-2 h-4 w-4" /> Check
                 </Button>
-                <Button variant="outline" disabled className="w-full sm:col-span-1">
+                <Button variant="outline" disabled className="w-full">
                     <Lightbulb className="mr-2 h-4 w-4" /> Hint
                 </Button>
             </div>
           </CardContent>
         </Card>
          <CardDescription className="text-center text-sm text-muted-foreground">
-            Sudoku game logic and levels are currently under development. This is a UI preview.
+            Sudoku game logic, multiple levels, and difficulty settings are under development. This is a UI preview with a sample puzzle.
         </CardDescription>
       </div>
     </AppShell>
