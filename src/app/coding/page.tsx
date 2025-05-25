@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { CodeXml, Lightbulb, Zap, BookOpen, Brain, TerminalSquare, Send } from 'lucide-react';
+import { CodeXml, Lightbulb, Zap, BookOpen, Brain, TerminalSquare, Send, Loader2 } from 'lucide-react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateCodingLesson, type GenerateCodingLessonInput, type GenerateCodingLessonOutput } from '@/ai/flows/generate-coding-lesson-flow';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,7 +59,7 @@ export default function CodingPage() {
   });
   
   // Sync react-hook-form with currentPromptText state
-  React.useEffect(() => {
+  useEffect(() => {
     form.setValue('userPrompt', currentPromptText);
   }, [currentPromptText, form]);
 
@@ -258,10 +258,3 @@ export default function CodingPage() {
     </AppShell>
   );
 }
-
-// Loader icon for button, if not already globally available
-const Loader2 = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
