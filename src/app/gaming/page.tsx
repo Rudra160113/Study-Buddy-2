@@ -96,12 +96,14 @@ export default function GamingPage() {
                   </div>
                 </Link>
               </Button>
-              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
-                <BookOpen className="mr-3 h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-semibold text-lg">Subject Quizzes</p>
-                  <p className="text-sm text-muted-foreground">K-12 Topics, General Knowledge</p>
-                </div>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/k12-quiz">
+                  <BookOpen className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Subject Quizzes</p>
+                    <p className="text-sm text-muted-foreground">K-12 Topics, General Knowledge</p>
+                  </div>
+                </Link>
               </Button>
             </div>
             <p className="text-sm text-center text-muted-foreground pt-4">
@@ -113,4 +115,3 @@ export default function GamingPage() {
     </AppShell>
   );
 }
-

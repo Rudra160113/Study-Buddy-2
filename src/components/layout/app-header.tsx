@@ -23,7 +23,8 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/dice-probability': return 'Dice Probability Challenge';
     case '/gaming/pattern-recall': return 'Pattern Recall Challenge';
     case '/gaming/hindi-riddles': return 'Hindi Paheliyan Challenge';
-    case '/gaming/logic-riddles': return 'Logic Riddles Challenge'; // New game title
+    case '/gaming/logic-riddles': return 'Logic Riddles Challenge';
+    case '/gaming/k12-quiz': return 'K-12 Subject Quiz'; // New game title
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
     default: 
@@ -65,4 +66,3 @@ export function AppHeader() {
     </header>
   );
 }
-
