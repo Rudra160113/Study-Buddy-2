@@ -4,9 +4,10 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon } from 'lucide-react';
-import { useTheme } from 'next-themes'; // Assuming next-themes is or will be installed for theme toggling
-import { useEffect, useState } from 'react';
+import { Sun, Moon, ChevronLeft } from 'lucide-react'; // Added ChevronLeft
+import Link from 'next/link'; // Added Link
+// import { useTheme } from 'next-themes'; 
+// import { useEffect, useState } from 'react';
 
 const getPageTitle = (pathname: string): string => {
   switch (pathname) {
@@ -16,7 +17,7 @@ const getPageTitle = (pathname: string): string => {
     case '/resources': return 'Resource Suggester';
     case '/tips': return 'Time Management Tips';
     case '/gaming': return 'Gaming Zone';
-    case '/gaming/sudoku': return 'Sudoku Challenge'; // Added Sudoku title
+    case '/gaming/sudoku': return 'Sudoku Challenge';
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
     default: return 'Study Buddy';
@@ -27,7 +28,6 @@ export function AppHeader() {
   const pathname = usePathname();
   const pageTitle = getPageTitle(pathname);
   
-  // For theme toggling, next-themes is typical. If not available, this part can be removed.
   // const { theme, setTheme } = useTheme();
   // const [mounted, setMounted] = useState(false);
   // useEffect(() => setMounted(true), []);
@@ -35,6 +35,13 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
       <div className="flex items-center gap-2">
+        {pathname !== '/' && (
+          <Button asChild variant="ghost" size="icon" className="h-7 w-7">
+            <Link href="/" aria-label="Back to Dashboard">
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+        )}
         <SidebarTrigger className="md:hidden" />
         <h1 className="text-lg font-semibold">{pageTitle}</h1>
       </div>
