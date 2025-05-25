@@ -26,6 +26,7 @@ import {
   MessageSquare,
   Leaf,
   ImageIcon,
+  Newspaper, // Keep if other 'science news' might be added, or remove if truly unused
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +41,7 @@ const navItems = [
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
   { href: '/jokes', label: 'Jokes', icon: Smile },
   { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
-  { href: '/science-news', label: 'Science Highlights', icon: Newspaper },
+  // { href: '/science-news', label: 'Science Highlights', icon: Newspaper }, // Removed this line
   { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle },
   { href: '/query-handler', label: 'Query Handler', icon: MessageSquare },
   { href: '/jurassic-world', label: 'Jurassic World', icon: Leaf },
