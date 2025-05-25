@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeImage, type AnalyzeImageInput, type AnalyzeImageOutput } from '@/ai/flows/analyze-image-flow';
-import { ImageIcon, Camera, Upload, Trash2, Loader2, Send, ImagePlay, Sparkles, AlertTriangle } from 'lucide-react';
+import { ImageIcon, Upload, Trash2, Loader2, Send, Sparkles, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,24 +30,10 @@ export default function ImageAnalysisPage() {
   const [userQuery, setUserQuery] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Clean up stream on component unmount
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (uploadedImages.length >= MAX_IMAGES) {
@@ -66,55 +52,6 @@ export default function ImageAnalysisPage() {
       reader.readAsDataURL(file);
     }
   };
-
-  const startCamera = async () => {
-    if (uploadedImages.length >= MAX_IMAGES) {
-      toast({ title: "Limit Reached", description: `You can upload a maximum of ${MAX_IMAGES} images.`, variant: "destructive" });
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      setHasCameraPermission(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setIsCapturing(true);
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      setHasCameraPermission(false);
-      toast({
-        variant: 'destructive',
-        title: 'Camera Access Denied',
-        description: 'Please enable camera permissions in your browser settings.',
-      });
-      setIsCapturing(false);
-    }
-  };
-
-  const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext('2d');
-      context?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/png');
-      const newImage: ImageFile = { id: Date.now().toString(), dataUrl, name: `capture-${Date.now()}.png` };
-      setUploadedImages(prev => [...prev, newImage]);
-      if (!selectedImage) setSelectedImage(newImage);
-      stopCamera();
-    }
-  };
-  
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-    }
-    setIsCapturing(false);
-  }
 
   const handleImageSelect = (image: ImageFile) => {
     setSelectedImage(image);
@@ -160,49 +97,22 @@ export default function ImageAnalysisPage() {
              <ImageIcon className="h-12 w-12 text-primary" />
             </div>
           <h1 className="text-4xl font-extrabold tracking-tight text-primary mb-2">AI Image Analysis</h1>
-          <p className="text-xl text-muted-foreground">Upload or capture an image and ask the AI about it!</p>
+          <p className="text-xl text-muted-foreground">Upload an image and ask the AI about it!</p>
         </header>
 
         {/* Image Input Section */}
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Add Images (Up to {MAX_IMAGES})</CardTitle>
-            <CardDescription>You can upload from your device or use your camera.</CardDescription>
+            <CardDescription>You can upload images from your device.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col sm:flex-row gap-4 items-center">
             <Button onClick={() => fileInputRef.current?.click()} disabled={uploadedImages.length >= MAX_IMAGES} className="w-full sm:w-auto">
               <Upload className="mr-2 h-4 w-4" /> Upload Image
             </Button>
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
-            <Button onClick={startCamera} disabled={isCapturing || uploadedImages.length >= MAX_IMAGES} className="w-full sm:w-auto">
-              <Camera className="mr-2 h-4 w-4" /> Open Camera
-            </Button>
-            {hasCameraPermission === false && (
-                <Alert variant="destructive" className="mt-2 sm:mt-0 w-full sm:w-auto">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Camera Access Denied</AlertTitle>
-                    <AlertDescription>Please enable camera permissions in browser settings.</AlertDescription>
-                </Alert>
-            )}
           </CardContent>
         </Card>
-
-        {/* Camera Capture UI */}
-        {isCapturing && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Camera Capture</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <video ref={videoRef} className="w-full max-w-md aspect-video rounded-md bg-muted" autoPlay playsInline muted />
-              <canvas ref={canvasRef} className="hidden" />
-              <div className="flex gap-2">
-                <Button onClick={captureImage}><ImagePlay className="mr-2 h-4 w-4" /> Capture</Button>
-                <Button onClick={stopCamera} variant="outline">Close Camera</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Image Gallery */}
         {uploadedImages.length > 0 && (
@@ -293,8 +203,8 @@ export default function ImageAnalysisPage() {
          {!selectedImage && uploadedImages.length > 0 && (
             <p className="text-center text-muted-foreground py-4">Select an image from the gallery above to start analyzing.</p>
         )}
-        {!selectedImage && uploadedImages.length === 0 && !isCapturing && (
-             <p className="text-center text-muted-foreground py-4">Upload or capture an image to begin analysis.</p>
+        {uploadedImages.length === 0 && (
+             <p className="text-center text-muted-foreground py-4">Upload an image to begin analysis.</p>
         )}
       </div>
     </AppShell>
