@@ -19,7 +19,8 @@ import {
   Gamepad2,
   CodeXml, 
   TerminalSquare,
-  Mail, // Added Mail icon
+  Mail,
+  Smile, // Added Smile icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +33,8 @@ const navItems = [
   { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
   { href: '/coding', label: 'Coding Zone', icon: CodeXml },
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
-  { href: '/contact', label: 'Contact Us', icon: Mail }, // New "Contact Us" item
+  { href: '/jokes', label: 'Jokes', icon: Smile }, // New "Jokes" item
+  { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 
 export function SidebarNav() {

@@ -27,7 +27,8 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/k12-quiz': return 'K-12 Subject Quiz';
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
-    case '/contact': return 'Contact Us'; // New mapping for Contact Us
+    case '/jokes': return 'Jokes Corner'; // New mapping for Jokes
+    case '/contact': return 'Contact Us';
     default: 
       if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games
       return 'Study Buddy';

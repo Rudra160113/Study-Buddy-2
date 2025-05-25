@@ -13,11 +13,13 @@ import '@/ai/flows/generate-dice-probability-problem-flow.ts';
 import '@/ai/flows/generate-pattern-image-flow.ts';
 import '@/ai/flows/generate-hindi-riddle-flow.ts';
 import '@/ai/flows/generate-logic-riddle-flow.ts';
-import '@/ai/flows/generate-k12-quiz-question-flow.ts'; // Added new K-12 quiz flow
+import '@/ai/flows/generate-k12-quiz-question-flow.ts';
+import '@/ai/flows/generate-hindi-joke-flow.ts'; // Added new Hindi joke flow
 
     
 
     
+
 
 
 
