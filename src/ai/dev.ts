@@ -8,8 +8,10 @@ import '@/ai/flows/generate-coding-lesson-flow.ts';
 import '@/ai/flows/interpret-code-flow.ts';
 import '@/ai/flows/suggest-code-correction-flow.ts';
 import '@/ai/flows/generate-math-word-problem-flow.ts';
-import '@/ai/flows/generate-bodmas-problem-flow.ts'; // Added new BODMAS flow
+import '@/ai/flows/generate-bodmas-problem-flow.ts';
+import '@/ai/flows/generate-dice-probability-problem-flow.ts'; // Added new dice probability flow
 
     
 
     
+

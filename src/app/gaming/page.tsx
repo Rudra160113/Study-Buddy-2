@@ -2,7 +2,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare } from 'lucide-react'; // Added DivideSquare
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare, Dices } from 'lucide-react'; // Added Dices
 import Link from 'next/link';
 
 export default function GamingPage() {
@@ -60,6 +60,15 @@ export default function GamingPage() {
                   </div>
                 </Link>
               </Button>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/dice-probability">
+                  <Dices className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Dice Probability</p>
+                    <p className="text-sm text-muted-foreground">Probability Challenge</p>
+                  </div>
+                </Link>
+              </Button>
               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <BookOpen className="mr-3 h-6 w-6 text-primary" />
                 <div>
@@ -91,3 +100,4 @@ export default function GamingPage() {
     </AppShell>
   );
 }
+

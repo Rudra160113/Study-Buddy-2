@@ -20,6 +20,7 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/sudoku': return 'Sudoku Challenge';
     case '/gaming/super-sums': return 'Super Sums Challenge';
     case '/gaming/bodmas-masters': return 'BODMAS Masters';
+    case '/gaming/dice-probability': return 'Dice Probability Challenge';
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
     default: return 'Study Buddy';
@@ -59,3 +60,4 @@ export function AppHeader() {
     </header>
   );
 }
+
