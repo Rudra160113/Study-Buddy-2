@@ -2,7 +2,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code } from 'lucide-react';
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare } from 'lucide-react'; // Added DivideSquare
 import Link from 'next/link';
 
 export default function GamingPage() {
@@ -25,7 +25,7 @@ export default function GamingPage() {
               <CardTitle className="text-3xl">Study Games Arcade</CardTitle>
             </div>
             <CardDescription className="text-md">
-              Select a game category below to start playing and learning. Leaderboards coming soon!
+              Select a game category below to start playing and learning.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -38,7 +38,7 @@ export default function GamingPage() {
                   <Puzzle className="mr-3 h-6 w-6 text-primary" />
                   <div>
                     <p className="font-semibold text-lg">Logic Puzzles</p>
-                    <p className="text-sm text-muted-foreground">e.g., Sudoku, Brain Teasers</p>
+                    <p className="text-sm text-muted-foreground">e.g., Sudoku</p>
                   </div>
                 </Link>
               </Button>
@@ -46,8 +46,17 @@ export default function GamingPage() {
                 <Link href="/gaming/super-sums">
                   <Calculator className="mr-3 h-6 w-6 text-primary" />
                   <div>
-                    <p className="font-semibold text-lg">Math Challenges</p>
-                    <p className="text-sm text-muted-foreground">e.g., Super Sums, BODMAS</p>
+                    <p className="font-semibold text-lg">Math Word Problems</p>
+                    <p className="text-sm text-muted-foreground">Super Sums</p>
+                  </div>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/bodmas-masters">
+                  <DivideSquare className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Order of Operations</p>
+                    <p className="text-sm text-muted-foreground">BODMAS Masters</p>
                   </div>
                 </Link>
               </Button>
@@ -65,23 +74,16 @@ export default function GamingPage() {
                   <p className="text-sm text-muted-foreground">Pattern recall, Flashcards</p>
                 </div>
               </Button>
-              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <Code className="mr-3 h-6 w-6 text-primary" />
                 <div>
                   <p className="font-semibold text-lg">Coding Challenges (Basic)</p>
                   <p className="text-sm text-muted-foreground">Introductory logic & syntax</p>
                 </div>
               </Button>
-               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
-                <Gamepad2 className="mr-3 h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-semibold text-lg">More Games Coming!</p>
-                  <p className="text-sm text-muted-foreground">Stay tuned for updates</p>
-                </div>
-              </Button>
             </div>
             <p className="text-sm text-center text-muted-foreground pt-4">
-              Each game will feature multiple levels and timers. Scores will be displayed on a leaderboard. (Features under development)
+              Each game features multiple levels and timers. Some games include leaderboards. (More games coming soon!)
             </p>
           </CardContent>
         </Card>
