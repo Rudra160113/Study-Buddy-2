@@ -16,7 +16,8 @@ import {
   BookOpenText,
   Timer,
   ListChecks,
-  Gamepad2, // Added Gamepad2 icon
+  Gamepad2,
+  CodeXml, // Added CodeXml icon for Coding Zone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +27,8 @@ const navItems = [
   { href: '/notes', label: 'Note Repository', icon: FileText },
   { href: '/resources', label: 'Resource Suggester', icon: Cpu },
   { href: '/tips', label: 'Time Management Tips', icon: BookOpenText },
-  { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 }, // Added Gaming link
+  { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
+  { href: '/coding', label: 'Coding Zone', icon: CodeXml }, // Added Coding Zone link
 ];
 
 export function SidebarNav() {

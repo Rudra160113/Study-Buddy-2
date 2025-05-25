@@ -15,7 +15,8 @@ const getPageTitle = (pathname: string): string => {
     case '/notes': return 'Note Repository';
     case '/resources': return 'Resource Suggester';
     case '/tips': return 'Time Management Tips';
-    case '/gaming': return 'Gaming Zone'; // Added title for gaming page
+    case '/gaming': return 'Gaming Zone';
+    case '/coding': return 'Coding Zone'; // Added title for coding page
     default: return 'Study Buddy';
   }
 };
