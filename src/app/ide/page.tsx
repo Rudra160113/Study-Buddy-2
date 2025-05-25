@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Play, Save, Settings2, TerminalSquare, Trash2, Bot, Terminal, Sparkles, Loader2 } from 'lucide-react';
+import { Play, Save, Settings2, TerminalSquare, Trash2, Bot, Sparkles, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { interpretCode, type InterpretCodeInput, type InterpretCodeOutput } from '@/ai/flows/interpret-code-flow';
@@ -119,8 +119,8 @@ export default function IdePage() {
     setConsoleOutput("");
   };
 
-  const runButtonText = selectedLanguage === 'javascript' ? 'Run JS' : 'AI Analyze Code';
-  const processingButtonText = selectedLanguage === 'javascript' ? 'Running JS...' : 'AI Analyzing...';
+  const processingButtonText = selectedLanguage === 'javascript' ? 'Running JS...' : 'Analyzing...';
+  const runButtonIcon = selectedLanguage === 'javascript' ? <Play className="mr-1.5 h-3.5 w-3.5" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />;
 
   return (
     <AppShell>
@@ -168,12 +168,12 @@ export default function IdePage() {
                 <Button 
                   variant="default" 
                   size="sm" 
-                  className="h-8 text-xs bg-green-600 hover:bg-green-700 min-w-[120px]"
+                  className="h-8 text-xs bg-green-600 hover:bg-green-700 min-w-[100px]"
                   onClick={handleRunOrAnalyzeCode}
                   disabled={isProcessing || !code.trim()}
                 >
-                  {isProcessing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : (selectedLanguage === 'javascript' ? <Play className="mr-1.5 h-3.5 w-3.5" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />)}
-                  {isProcessing ? processingButtonText : runButtonText}
+                  {isProcessing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : runButtonIcon}
+                  {isProcessing ? processingButtonText : "Run"}
                 </Button>
                  <Button variant="ghost" size="icon" disabled className="h-8 w-8">
                   <Settings2 className="h-4 w-4" />
@@ -185,7 +185,7 @@ export default function IdePage() {
             <div className="flex-grow flex flex-col md:flex-row h-full">
               <div className="w-full md:w-2/3 h-1/2 md:h-full flex flex-col border-r-0 md:border-r">
                 <Textarea
-                  placeholder="// Your code goes here... Type or paste and click 'Run JS' (for JavaScript) or 'AI Analyze Code' (for other languages)."
+                  placeholder="// Your code goes here... Type or paste and click 'Run'."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-sm font-mono focus-visible:ring-0 focus-visible:ring-offset-0"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
@@ -214,9 +214,6 @@ export default function IdePage() {
                 <div className="flex gap-2 flex-wrap">
                     <Button variant="outline" size="sm" disabled className="text-xs">
                         <Bot className="mr-1.5 h-3.5 w-3.5" /> LLM Code Assistant
-                    </Button>
-                    <Button variant="outline" size="sm" disabled className="text-xs">
-                        <Terminal className="mr-1.5 h-3.5 w-3.5" /> Bash Terminal
                     </Button>
                 </div>
              </div>
