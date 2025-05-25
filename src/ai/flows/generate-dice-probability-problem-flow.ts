@@ -57,7 +57,7 @@ Instructions for difficulty scaling:
 Ensure the problem is solvable and the answer is mathematically correct.
 Do NOT include the answer in the problemStatement.
 The AI should generate a problem and options that are appropriate for the game context.
-Verify that `correctAnswer` is indeed present in the `options` array.
+Verify that correctAnswer is indeed present in the options array.
 Provide a good spread of difficulties for the options.
 Ensure options are distinct.
 For probability answers, simplest fraction form is preferred. For expected value, decimal is fine.
