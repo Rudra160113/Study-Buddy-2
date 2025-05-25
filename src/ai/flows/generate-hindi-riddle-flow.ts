@@ -59,7 +59,7 @@ Example of a complete desired output structure for a different riddle:
 
 Ensure the generated riddle is thoughtful and the distractors are reasonable.
 Do not include any extra text, explanations, or labels like "Paheli:", "Options:", "Answer:" in the output fields themselves. Just the direct values.
-The `correctAnswer` must be one of the strings present in the `options` array.
+The correctAnswer must be one of the strings present in the options array.
 `,
 });
 
@@ -85,3 +85,4 @@ const generateHindiRiddleFlow = ai.defineFlow(
     return output;
   }
 );
+
