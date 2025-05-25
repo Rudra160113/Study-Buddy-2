@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mail, Send, User, MessageSquare } from 'lucide-react';
+import { Mail, Send, User, MessageSquare, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 
@@ -16,22 +16,49 @@ export default function ContactUsPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, you would handle form submission here (e.g., send to a backend)
-    
-    // For now, simulate sending and show a toast
-    toast({
-      title: "Message Sent (Simulated)",
-      description: "Thank you for your message! We'll get back to you soon (this is a simulation).",
-      className: "bg-green-500 text-white", // Example custom styling for success
-    });
+    setIsLoading(true);
 
-    // Clear the form
-    setName('');
-    setEmail('');
-    setMessage('');
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, message }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Message Sent!",
+          description: result.message || "Thank you for your message! We'll get back to you soon.",
+          className: "bg-green-500 text-white",
+        });
+        // Clear the form
+        setName('');
+        setEmail('');
+        setMessage('');
+      } else {
+        toast({
+          title: "Error Sending Message",
+          description: result.error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Could not send message. Please check your connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -104,6 +131,7 @@ export default function ContactUsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="bg-card focus:ring-primary/50"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -118,6 +146,7 @@ export default function ContactUsPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-card focus:ring-primary/50"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -132,19 +161,21 @@ export default function ContactUsPage() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="bg-card focus:ring-primary/50"
+                    disabled={isLoading}
                   />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                  <Send className="mr-2 h-4 w-4" /> Send Message
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  {isLoading ? 'Sending...' : 'Send Message'}
                 </Button>
               </CardFooter>
             </form>
           </Card>
         </div>
          <p className="text-center text-sm text-muted-foreground mt-10">
-            Please note: The contact form simulates sending a message. For actual inquiries, please use the email address provided.
+            Please note: The contact form currently simulates sending a message to a backend. For actual email delivery to warriorrudra2009@gmail.com, further backend setup with an email service is required.
         </p>
       </div>
     </AppShell>
