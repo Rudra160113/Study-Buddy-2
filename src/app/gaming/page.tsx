@@ -2,7 +2,8 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code } from 'lucide-react'; // Added more icons
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code } from 'lucide-react';
+import Link from 'next/link'; // Import Link
 
 export default function GamingPage() {
   return (
@@ -32,12 +33,14 @@ export default function GamingPage() {
               Choose a Category:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
-                <Puzzle className="mr-3 h-6 w-6 text-primary" />
-                <div>
-                  <p className="font-semibold text-lg">Logic Puzzles</p>
-                  <p className="text-sm text-muted-foreground">e.g., Sudoku, Brain Teasers</p>
-                </div>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/sudoku">
+                  <Puzzle className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Logic Puzzles</p>
+                    <p className="text-sm text-muted-foreground">e.g., Sudoku, Brain Teasers</p>
+                  </div>
+                </Link>
               </Button>
               <Button variant="outline" disabled className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <Calculator className="mr-3 h-6 w-6 text-primary" />
