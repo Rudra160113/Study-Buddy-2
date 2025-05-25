@@ -19,7 +19,7 @@ import {
   Gamepad2,
   CodeXml, 
   TerminalSquare,
-  Youtube, // Added Youtube icon
+  Mail, // Added Mail icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,7 +32,7 @@ const navItems = [
   { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
   { href: '/coding', label: 'Coding Zone', icon: CodeXml },
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
-  { href: '/study-online', label: 'Study Online', icon: Youtube }, // New "Study Online" item
+  { href: '/contact', label: 'Contact Us', icon: Mail }, // New "Contact Us" item
 ];
 
 export function SidebarNav() {
