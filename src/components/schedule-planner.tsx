@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ScheduleItem } from '@/lib/types';
@@ -66,10 +67,13 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
   }, [initialItems]);
 
   useEffect(() => {
-    if (items.length > 0 || localStorage.getItem('scheduleItems')) { // Only update if items exist or have been loaded
+    // Only update localStorage if items have been loaded or modified,
+    // or if localStorage was initially empty and we're populating it.
+    const storedItems = localStorage.getItem('scheduleItems');
+    if (items.length > 0 || !storedItems || (storedItems && JSON.parse(storedItems).length === 0 && items.length === 0 && initialItems.length === 0)) {
         localStorage.setItem('scheduleItems', JSON.stringify(items));
     }
-  }, [items]);
+  }, [items, initialItems]);
 
 
   const onSubmit: SubmitHandler<ScheduleFormValues> = (data) => {
@@ -115,7 +119,13 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
     });
   };
 
-  const sortedItems = [...items].sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+  const sortedItems = [...items].sort((a, b) => {
+    // Sort by completion status (incomplete first), then by deadline
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
+    return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+  });
 
   return (
     <div className="space-y-6">
@@ -170,7 +180,7 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(field.value, "PPP p") // Added time format
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -213,39 +223,40 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
         ) : (
           <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {sortedItems.map(item => (
-              <Card key={item.id} className={cn("shadow-md", item.completed && "bg-muted/50")}>
+              <Card key={item.id} className={cn("shadow-md transition-all duration-300 flex flex-col", item.completed ? "bg-muted/30 border-green-500/50" : "border-border")}>
                 <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span className={cn(item.completed && "line-through text-muted-foreground")}>{item.title}</span>
-                    {item.completed ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-red-500" />}
+                  <CardTitle className="flex justify-between items-start">
+                    <span className={cn("text-lg font-semibold",item.completed && "line-through text-muted-foreground")}>{item.title}</span>
+                    {item.completed ? <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0" /> : <XCircle className="h-6 w-6 text-red-500/70 flex-shrink-0" />}
                   </CardTitle>
                   <CardDescription className={cn(item.completed && "line-through text-muted-foreground")}>
                     Deadline: {format(new Date(item.deadline), "PPP p")}
                   </CardDescription>
                 </CardHeader>
                 {item.description && (
-                  <CardContent>
-                    <p className={cn("text-sm", item.completed && "line-through text-muted-foreground")}>{item.description}</p>
+                  <CardContent className="flex-grow">
+                    <p className={cn("text-sm whitespace-pre-line", item.completed && "line-through text-muted-foreground")}>{item.description}</p>
                   </CardContent>
                 )}
-                <CardFooter className="flex justify-between items-center">
+                <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2 pt-4 border-t mt-auto">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={`complete-${item.id}`}
                       checked={item.completed}
                       onCheckedChange={() => toggleComplete(item.id)}
+                      aria-label={item.completed ? 'Mark as incomplete' : 'Mark as complete'}
                     />
-                    <label htmlFor={`complete-${item.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <label htmlFor={`complete-${item.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
                       {item.completed ? 'Completed' : 'Mark as complete'}
                     </label>
                   </div>
-                  <div className="space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => startEdit(item)} className="text-blue-500 hover:text-blue-700" title="Edit Task">
+                  <div className="space-x-1 self-end sm:self-center">
+                    <Button variant="ghost" size="icon" onClick={() => startEdit(item)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50" title="Edit Task">
                       <Edit3 className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" title="Delete Task">
+                        <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/50" title="Delete Task">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
@@ -272,3 +283,5 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
     </div>
   );
 }
+
+    
