@@ -4,12 +4,10 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CodeXml, Lightbulb, Zap, BookOpen, Brain, TerminalSquare } from 'lucide-react';
-import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
+import { Label } from '@/components/ui/label';
+import { CodeXml, Lightbulb, Zap, BookOpen, Brain, TerminalSquare, Send } from 'lucide-react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useState } from 'react';
@@ -19,9 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const lessonRequestSchema = z.object({
-  language: z.string().min(1, 'Programming language is required.'),
-  topic: z.string().min(1, 'Topic is required.'),
-  difficulty: z.enum(['beginner', 'intermediate', 'advanced'], { required_error: "Difficulty level is required." }),
+  userPrompt: z.string().min(10, 'Please describe what you want to learn (min 10 characters).'),
 });
 
 type LessonRequestFormValues = z.infer<typeof lessonRequestSchema>;
@@ -52,23 +48,28 @@ interface DisplayLesson extends Omit<GenerateCodingLessonOutput, 'codeExamples' 
 export default function CodingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [lesson, setLesson] = useState<DisplayLesson | null>(null);
+  const [currentPromptText, setCurrentPromptText] = useState("Tell me about Python functions, explain like I'm a beginner.");
   const { toast } = useToast();
 
   const form = useForm<LessonRequestFormValues>({
     resolver: zodResolver(lessonRequestSchema),
     defaultValues: {
-      language: '',
-      topic: '',
-      difficulty: 'beginner',
+      userPrompt: currentPromptText,
     },
   });
+  
+  // Sync react-hook-form with currentPromptText state
+  React.useEffect(() => {
+    form.setValue('userPrompt', currentPromptText);
+  }, [currentPromptText, form]);
+
 
   const onSubmit: SubmitHandler<LessonRequestFormValues> = async (data) => {
     setIsLoading(true);
-    setLesson(null);
+    // Do not set lesson to null immediately, allow current lesson to be visible while new one loads
+    // setLesson(null); 
     try {
       const result = await generateCodingLesson(data as GenerateCodingLessonInput);
-      // Ensure a default empty array if any of these are undefined from the AI
       setLesson({
         ...result,
         concepts: result.concepts || [],
@@ -76,7 +77,11 @@ export default function CodingPage() {
         exercises: result.exercises || [],
         suggestedNextTopics: result.suggestedNextTopics || [],
       });
-      toast({ title: "Lesson Generated!", description: `Your lesson on ${data.topic} in ${data.language} is ready.` });
+      toast({ title: "Lesson Generated!", description: `Your new lesson is ready.` });
+      // Clear the prompt for the next question, or set a follow-up placeholder
+      setCurrentPromptText(""); 
+      form.reset({ userPrompt: "" });
+
     } catch (error) {
       console.error("Error generating lesson:", error);
       toast({
@@ -97,7 +102,7 @@ export default function CodingPage() {
             Coding Zone
           </h1>
           <p className="text-xl text-muted-foreground">
-            Learn to code with AI assistance. Start your journey from novice to pro!
+            Learn to code with AI assistance. Ask anything, from basic concepts to advanced topics!
           </p>
         </header>
 
@@ -108,54 +113,34 @@ export default function CodingPage() {
               <CardTitle className="text-3xl">AI Coding Tutor</CardTitle>
             </div>
             <CardDescription className="text-md">
-              Tell us what you want to learn, and our AI tutor will generate a personalized lesson for you.
+              Describe what you want to learn, or ask a follow-up question about the current lesson.
             </CardDescription>
           </CardHeader>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="language">Programming Language</Label>
-                  <Input id="language" placeholder="e.g., Python, JavaScript" {...form.register('language')} />
-                  {form.formState.errors.language && <p className="text-sm text-destructive mt-1">{form.formState.errors.language.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="topic">Topic</Label>
-                  <Input id="topic" placeholder="e.g., Variables, Loops, Functions" {...form.register('topic')} />
-                  {form.formState.errors.topic && <p className="text-sm text-destructive mt-1">{form.formState.errors.topic.message}</p>}
-                </div>
-              </div>
               <div>
-                <Label htmlFor="difficulty">Difficulty Level</Label>
-                <Controller
-                  name="difficulty"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger id="difficulty">
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">Beginner</SelectItem>
-                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                        <SelectItem value="advanced">Advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                <Label htmlFor="userPrompt">Your Learning Request or Question</Label>
+                <Textarea 
+                  id="userPrompt" 
+                  placeholder={lesson ? "Ask a follow-up or a new coding question..." : "e.g., Explain Python lists for beginners, What are async functions in JavaScript?, How do I use the Rust borrow checker?"}
+                  {...form.register('userPrompt')} 
+                  rows={4}
+                  value={currentPromptText}
+                  onChange={(e) => setCurrentPromptText(e.target.value)}
                 />
-                {form.formState.errors.difficulty && <p className="text-sm text-destructive mt-1">{form.formState.errors.difficulty.message}</p>}
+                {form.formState.errors.userPrompt && <p className="text-sm text-destructive mt-1">{form.formState.errors.userPrompt.message}</p>}
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
               <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
-                {isLoading ? 'Generating Lesson...' : 'Generate Lesson'}
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {isLoading ? 'Generating...' : (lesson ? 'Ask Follow-up / New Question' : 'Generate Lesson')}
               </Button>
             </CardFooter>
           </form>
         </Card>
 
-        {isLoading && (
+        {isLoading && !lesson && ( // Show this skeleton only if it's the initial loading state
           <Card className="shadow-lg w-full max-w-3xl mx-auto mt-8">
             <CardHeader>
               <Skeleton className="h-8 w-3/4 mb-2" />
@@ -171,21 +156,29 @@ export default function CodingPage() {
             </CardContent>
           </Card>
         )}
+        
+        {isLoading && lesson && ( // Show a more subtle loading indicator when a lesson is already displayed
+             <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                <p className="text-muted-foreground mt-2">Generating new content...</p>
+            </div>
+        )}
 
-        {lesson && !isLoading && (
+
+        {lesson && ! (isLoading && !lesson) && ( // Render lesson if available and not in initial loading state
           <Card className="shadow-xl w-full max-w-4xl mx-auto mt-8 animate-in fade-in-50 slide-in-from-bottom-10 duration-500">
             <CardHeader>
               <CardTitle className="text-2xl text-primary">{lesson.lessonTitle}</CardTitle>
-              {lesson.introduction && <CardDescription className="text-md pt-2">{lesson.introduction}</CardDescription>}
+              {lesson.introduction && <CardDescription className="text-md pt-2 whitespace-pre-line">{lesson.introduction}</CardDescription>}
             </CardHeader>
             <CardContent className="space-y-6">
               {lesson.concepts && lesson.concepts.length > 0 && (
                 <div>
                   <h3 className="text-xl font-semibold mb-3 flex items-center"><Lightbulb className="mr-2 h-5 w-5 text-accent" />Key Concepts</h3>
-                  <Accordion type="single" collapsible className="w-full">
+                  <Accordion type="single" collapsible className="w-full" defaultValue="concept-0">
                     {lesson.concepts.map((concept, index) => (
                       <AccordionItem value={`concept-${index}`} key={`concept-${index}`}>
-                        <AccordionTrigger className="text-lg hover:no-underline">{concept.name}</AccordionTrigger>
+                        <AccordionTrigger className="text-lg hover:no-underline text-left">{concept.name}</AccordionTrigger>
                         <AccordionContent className="text-muted-foreground whitespace-pre-line">
                           {concept.explanation}
                         </AccordionContent>
@@ -201,7 +194,8 @@ export default function CodingPage() {
                   {lesson.codeExamples.map((example, index) => (
                     <Card key={`code-${index}`} className="mb-4 bg-secondary/30">
                       <CardHeader className="pb-2">
-                        <CardDescription>{example.description}</CardDescription>
+                         <p className="text-sm font-medium text-muted-foreground">Language: {example.language || "not specified"}</p>
+                        <CardDescription className="whitespace-pre-line">{example.description}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <pre className="bg-background p-4 rounded-md shadow overflow-x-auto">
@@ -219,7 +213,7 @@ export default function CodingPage() {
                    <Accordion type="single" collapsible className="w-full">
                     {lesson.exercises.map((exercise, index) => (
                        <AccordionItem value={`exercise-${index}`} key={`exercise-${index}`}>
-                         <AccordionTrigger className="text-lg hover:no-underline">Exercise {index + 1}: {exercise.statement.substring(0,50)}...</AccordionTrigger>
+                         <AccordionTrigger className="text-lg hover:no-underline text-left">Exercise {index + 1}: {exercise.statement.substring(0,70)}{exercise.statement.length > 70 ? "..." : ""}</AccordionTrigger>
                          <AccordionContent>
                            <p className="text-muted-foreground mb-2 whitespace-pre-line">{exercise.statement}</p>
                            {exercise.hints && exercise.hints.length > 0 && (
@@ -256,7 +250,7 @@ export default function CodingPage() {
               )}
             </CardContent>
             <CardFooter>
-                <p className="text-sm text-muted-foreground">End of lesson. Ready to learn more?</p>
+                <p className="text-sm text-muted-foreground">End of lesson. Ask a follow-up question above or request a new topic!</p>
             </CardFooter>
           </Card>
         )}
