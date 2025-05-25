@@ -26,7 +26,7 @@ import {
   HelpCircle,
   MessageSquare,
   Leaf,
-  ImageIcon, // Added ImageIcon
+  ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -42,10 +42,11 @@ const navItems = [
   { href: '/jokes', label: 'Jokes', icon: Smile },
   { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
   { href: '/science-news', label: 'Science News', icon: Newspaper },
+  { href: '/hindi-news', label: 'Hindi News', icon: Newspaper }, // Added Hindi News
   { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle },
   { href: '/query-handler', label: 'Query Handler', icon: MessageSquare },
   { href: '/jurassic-world', label: 'Jurassic World', icon: Leaf },
-  { href: '/image-analysis', label: 'Image Analysis', icon: ImageIcon }, // New Image Analysis link
+  { href: '/image-analysis', label: 'Image Analysis', icon: ImageIcon },
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 
