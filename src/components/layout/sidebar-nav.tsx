@@ -25,7 +25,8 @@ import {
   Newspaper, 
   HelpCircle,
   MessageSquare,
-  Leaf, // Added Leaf for Jurassic World
+  Leaf,
+  ImageIcon, // Added ImageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +44,8 @@ const navItems = [
   { href: '/science-news', label: 'Science News', icon: Newspaper },
   { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle },
   { href: '/query-handler', label: 'Query Handler', icon: MessageSquare },
-  { href: '/jurassic-world', label: 'Jurassic World', icon: Leaf }, // New Jurassic World link
+  { href: '/jurassic-world', label: 'Jurassic World', icon: Leaf },
+  { href: '/image-analysis', label: 'Image Analysis', icon: ImageIcon }, // New Image Analysis link
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 

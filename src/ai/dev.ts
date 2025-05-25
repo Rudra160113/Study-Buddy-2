@@ -19,11 +19,13 @@ import '@/ai/flows/generate-science-facts-flow.ts';
 import '@/ai/flows/generate-science-highlight-flow.ts'; 
 import '@/ai/flows/generate-custom-questions-flow.ts';
 import '@/ai/flows/friendly-query-handler-flow.ts';
-import '@/ai/flows/generate-creature-image-flow.ts'; // Added new creature image flow
+import '@/ai/flows/generate-creature-image-flow.ts';
+import '@/ai/flows/analyze-image-flow.ts'; // Added new image analysis flow
 
     
 
     
+
 
 
 

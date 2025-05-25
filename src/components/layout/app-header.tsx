@@ -32,7 +32,8 @@ const getPageTitle = (pathname: string): string => {
     case '/science-news': return 'Science Highlights';
     case '/custom-quiz-generator': return 'Custom Question Generator';
     case '/query-handler': return 'Query Handler';
-    case '/jurassic-world': return 'Jurassic World'; // New title mapping
+    case '/jurassic-world': return 'Jurassic World';
+    case '/image-analysis': return 'AI Image Analysis'; // New title mapping
     case '/contact': return 'Contact Us';
     default: 
       if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games
