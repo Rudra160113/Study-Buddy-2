@@ -23,7 +23,7 @@ type NewsQueryFormValues = z.infer<typeof newsQuerySchema>;
 export default function HindiNewsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [newsResponse, setNewsResponse] = useState<GenerateHindiNewsOutput | null>(null);
-  const [currentQueryText, setCurrentQueryText] = useState("आज की मुख्य खबरें बताएं"); // Default query
+  const [currentQueryText, setCurrentQueryText] = useState("आज की 10 मुख्य खबरें बताएं"); // Default query for 10 headlines
 
   const { toast } = useToast();
 
@@ -64,7 +64,7 @@ export default function HindiNewsPage() {
 
   // Fetch initial headlines on load
   useEffect(() => {
-    fetchNews("आज की मुख्य खबरें बताएं");
+    fetchNews("आज की 10 मुख्य खबरें बताएं");
   }, [fetchNews]);
 
   const onSubmit: SubmitHandler<NewsQueryFormValues> = (data) => {
@@ -93,7 +93,7 @@ export default function HindiNewsPage() {
               AI से पूछें
             </CardTitle>
             <CardDescription style={{ fontFamily: "'Noto Sans Devanagari', sans-serif" }}>
-              नवीनतम समाचारों के लिए पूछें, या किसी विशिष्ट खबर के बारे में अधिक जानकारी प्राप्त करें।
+              नवीनतम समाचारों के लिए पूछें (जैसे, "आज की 10 मुख्य खबरें" या "25 मई 2025 की खबरें"), या किसी विशिष्ट खबर के बारे में अधिक जानकारी प्राप्त करें।
             </CardDescription>
           </CardHeader>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -102,7 +102,7 @@ export default function HindiNewsPage() {
                 <Label htmlFor="userQuery" className="sr-only">आपका प्रश्न</Label>
                 <Textarea
                   id="userQuery"
-                  placeholder="जैसे: आज की मुख्य खबरें बताएं, या किसी खबर के बारे में पूछें..."
+                  placeholder="जैसे: आज की 10 मुख्य खबरें बताएं, या किसी खबर के बारे में पूछें..."
                   {...form.register('userQuery')}
                   value={currentQueryText}
                   onChange={(e) => setCurrentQueryText(e.target.value)}
@@ -140,6 +140,10 @@ export default function HindiNewsPage() {
                   <Skeleton className="h-6 w-1/2 mt-4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
                 </div>
               )}
               {!isLoading && newsResponse && (
