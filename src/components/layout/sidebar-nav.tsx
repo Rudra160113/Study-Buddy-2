@@ -23,7 +23,8 @@ import {
   Smile,
   FlaskConical,
   Newspaper, 
-  HelpCircle, // Added HelpCircle for Custom Question Generator
+  HelpCircle,
+  MessageSquare, // Added for Query Handler
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +40,8 @@ const navItems = [
   { href: '/jokes', label: 'Jokes', icon: Smile },
   { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
   { href: '/science-news', label: 'Science News', icon: Newspaper },
-  { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle }, // New Item
+  { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle },
+  { href: '/query-handler', label: 'Query Handler', icon: MessageSquare }, // New Query Handler
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 

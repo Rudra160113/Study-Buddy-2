@@ -30,7 +30,8 @@ const getPageTitle = (pathname: string): string => {
     case '/jokes': return 'Jokes Corner';
     case '/science-facts': return 'Science Facts';
     case '/science-news': return 'Science Highlights';
-    case '/custom-quiz-generator': return 'Custom Question Generator'; // New mapping
+    case '/custom-quiz-generator': return 'Custom Question Generator';
+    case '/query-handler': return 'Query Handler'; // New mapping
     case '/contact': return 'Contact Us';
     default: 
       if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games

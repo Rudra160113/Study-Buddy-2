@@ -17,11 +17,13 @@ import '@/ai/flows/generate-k12-quiz-question-flow.ts';
 import '@/ai/flows/generate-hindi-joke-flow.ts';
 import '@/ai/flows/generate-science-facts-flow.ts';
 import '@/ai/flows/generate-science-highlight-flow.ts'; 
-import '@/ai/flows/generate-custom-questions-flow.ts'; // Added new custom questions flow
+import '@/ai/flows/generate-custom-questions-flow.ts';
+import '@/ai/flows/friendly-query-handler-flow.ts'; // Added new query handler flow
 
     
 
     
+
 
 
 
