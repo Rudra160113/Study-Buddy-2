@@ -35,7 +35,7 @@ const generateCreatureImageFlow = ai.defineFlow(
     try {
       const { media } = await ai.generate({
         model: 'googleai/gemini-2.0-flash-exp',
-        prompt: `Generate a realistic image of a ${creatureName} from the Jurassic period. The creature should be the main focus. White background or simple natural environment.`,
+        prompt: `Generate a realistic image of a ${creatureName} from the Jurassic period. The creature should be the main focus, clearly visible, and well-framed. Aim for a full body shot or a significant portion of the creature. The creature should ideally be facing the viewer or in profile, not primarily showing its back. Use a simple natural environment or a white background.`,
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
           safetySettings: [
