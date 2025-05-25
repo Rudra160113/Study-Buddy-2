@@ -24,9 +24,10 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/pattern-recall': return 'Pattern Recall Challenge';
     case '/gaming/hindi-riddles': return 'Hindi Paheliyan Challenge';
     case '/gaming/logic-riddles': return 'Logic Riddles Challenge';
-    case '/gaming/k12-quiz': return 'K-12 Subject Quiz'; // New game title
+    case '/gaming/k12-quiz': return 'K-12 Subject Quiz';
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
+    case '/study-online': return 'Study Online'; // New mapping for Study Online
     default: 
       if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games
       return 'Study Buddy';

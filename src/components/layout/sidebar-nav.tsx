@@ -18,7 +18,8 @@ import {
   ListChecks,
   Gamepad2,
   CodeXml, 
-  TerminalSquare, // Added TerminalSquare icon for IDE
+  TerminalSquare,
+  Youtube, // Added Youtube icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +31,8 @@ const navItems = [
   { href: '/tips', label: 'Time Management Tips', icon: BookOpenText },
   { href: '/gaming', label: 'Gaming Zone', icon: Gamepad2 },
   { href: '/coding', label: 'Coding Zone', icon: CodeXml },
-  { href: '/ide', label: 'IDE', icon: TerminalSquare }, // Added IDE link
+  { href: '/ide', label: 'IDE', icon: TerminalSquare },
+  { href: '/study-online', label: 'Study Online', icon: Youtube }, // New "Study Online" item
 ];
 
 export function SidebarNav() {
