@@ -24,7 +24,8 @@ import {
   FlaskConical,
   Newspaper, 
   HelpCircle,
-  MessageSquare, // Added for Query Handler
+  MessageSquare,
+  Leaf, // Added Leaf for Jurassic World
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +42,8 @@ const navItems = [
   { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
   { href: '/science-news', label: 'Science News', icon: Newspaper },
   { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle },
-  { href: '/query-handler', label: 'Query Handler', icon: MessageSquare }, // New Query Handler
+  { href: '/query-handler', label: 'Query Handler', icon: MessageSquare },
+  { href: '/jurassic-world', label: 'Jurassic World', icon: Leaf }, // New Jurassic World link
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 
