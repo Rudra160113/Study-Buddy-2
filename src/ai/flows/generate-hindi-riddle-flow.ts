@@ -58,6 +58,7 @@ Example of a complete desired output structure for a different riddle:
 }
 
 Ensure the generated riddle is thoughtful and the distractors are reasonable.
+Please ensure a wide variety of riddle subjects and answers. Avoid repeating answers. Riddles can be about common objects, nature, daily life, or abstract concepts.
 Do not include any extra text, explanations, or labels like "Paheli:", "Options:", "Answer:" in the output fields themselves. Just the direct values.
 The correctAnswer must be one of the strings present in the options array.
 `,
@@ -77,7 +78,7 @@ const generateHindiRiddleFlow = ai.defineFlow(
       console.error("AI failed to generate a valid Hindi riddle or options:", output);
       // Provide a fallback riddle
       return {
-        riddle: "एक छोटा सा फकीर, जिसके पेट में लकीर। बताओ क्या?", // A simple fallback riddle
+        riddle: "एक छोटा सा फकीर, जिसके पेट में लकीर। बताओ क्या?", // A simple fallback riddle (Answer: Coconut - नारियल)
         options: ["नारियल", "केला", "सेब", "आम"],
         correctAnswer: "नारियल",
       };
