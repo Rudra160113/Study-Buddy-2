@@ -21,7 +21,8 @@ import {
   TerminalSquare,
   Mail,
   Smile,
-  FlaskConical, // Added FlaskConical icon
+  FlaskConical,
+  Newspaper, // Added Newspaper icon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -35,7 +36,8 @@ const navItems = [
   { href: '/coding', label: 'Coding Zone', icon: CodeXml },
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
   { href: '/jokes', label: 'Jokes', icon: Smile },
-  { href: '/science-facts', label: 'Science Facts', icon: FlaskConical }, // New "Science Facts" item
+  { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
+  { href: '/science-news', label: 'Science News', icon: Newspaper }, // New "Science News" item
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 
