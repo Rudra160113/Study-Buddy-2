@@ -1,7 +1,7 @@
 import type { TimeManagementTip } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Lightbulb, Clock, Zap, CheckSquare, Users } from 'lucide-react';
-import Image from 'next/image';
+import AnalogClock from './analog-clock'; // Import the new AnalogClock component
 
 const tips: TimeManagementTip[] = [
   {
@@ -49,15 +49,8 @@ export function TimeManagementTips() {
             Discover effective strategies to manage your study time and boost productivity.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-            <Image 
-                src="https://placehold.co/600x300.png" 
-                alt="Time management visual" 
-                width={600} 
-                height={300} 
-                className="rounded-lg mx-auto"
-                data-ai-hint="organized calendar"
-              />
+        <CardContent className="flex justify-center items-center py-8"> {/* Adjusted padding and centered content */}
+            <AnalogClock size={280} /> {/* Replaced Image with AnalogClock, size can be adjusted */}
         </CardContent>
       </Card>
       
@@ -78,7 +71,7 @@ export function TimeManagementTips() {
   );
 }
 
-// A fallback icon if needed
+// A fallback icon if needed - already present in the file
 const BookOpenText = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -89,4 +82,3 @@ const BookOpenText = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M16 12h2"></path>
   </svg>
 );
-
