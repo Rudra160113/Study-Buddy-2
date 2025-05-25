@@ -13,14 +13,7 @@ import { studyBuddySearch, type StudyBuddySearchInput, type StudyBuddySearchOutp
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowDownCircle } from 'lucide-react';
-
-// Mock data, replace with actual data fetching or state management
-const initialScheduleItems: ScheduleItem[] = [
-  { id: '1', title: 'Math Assignment 1', deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), completed: false, description: 'Complete chapter 1 exercises.' },
-  { id: '2', title: 'History Presentation Prep', deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), completed: false, description: 'Research and outline presentation.' },
-  { id: '3', title: 'Physics Lab Report', deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), completed: true, description: 'Write up experiment results.' },
-  { id: '4', title: 'Literature Essay', deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), completed: false, description: 'Draft first version of essay.' },
-];
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added
 
 interface SearchResult {
   query: string;
@@ -65,6 +58,7 @@ const StudyBuddyLogo = () => (
 
 
 export default function DashboardPage() {
+  const currentUserEmail = useCurrentUserEmail(); // Added
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [searchBarPosition, setSearchBarPosition] = useState<'top' | 'bottom'>('top');
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
@@ -75,14 +69,21 @@ export default function DashboardPage() {
   const searchResultsRef = useRef<HTMLDivElement>(null); 
 
   useEffect(() => {
-    const storedItems = localStorage.getItem('scheduleItems');
+    if (currentUserEmail === undefined) return; // Wait for email
+
+    const storageKey = currentUserEmail ? `${currentUserEmail}_scheduleItems` : 'scheduleItems_guest';
+    const storedItems = localStorage.getItem(storageKey);
     if (storedItems) {
-      setScheduleItems(JSON.parse(storedItems).map((item: ScheduleItem) => ({...item, deadline: new Date(item.deadline)})));
+      try {
+        setScheduleItems(JSON.parse(storedItems).map((item: ScheduleItem) => ({...item, deadline: new Date(item.deadline)})));
+      } catch (error) {
+        console.error("Failed to parse schedule items for dashboard from localStorage", error);
+        setScheduleItems([]); // Fallback
+      }
     } else {
-      setScheduleItems(initialScheduleItems);
-      localStorage.setItem('scheduleItems', JSON.stringify(initialScheduleItems));
+      setScheduleItems([]); // No items if nothing in storage for this user
     }
-  }, []);
+  }, [currentUserEmail]);
 
   const handleSearch = async (query: string) => {
     setIsLoadingSearch(true);
@@ -121,9 +122,19 @@ export default function DashboardPage() {
     </div>
   );
 
+  if (currentUserEmail === undefined) {
+    return (
+      <AppShell>
+        <div className="flex flex-col items-center justify-center min-h-full">
+          <p>Loading dashboard...</p>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
-      <div className="flex flex-col items-center space-y-6 min-h-full pb-24"> {/* Added pb-24 for bottom search bar space */}
+      <div className="flex flex-col items-center space-y-6 min-h-full pb-24"> 
         {searchBarPosition === 'top' && <SearchSection />}
 
         <div className="text-center my-6">
@@ -180,7 +191,7 @@ export default function DashboardPage() {
           <>
             <Card className="w-full max-w-4xl shadow-lg">
               <CardHeader>
-                <CardTitle className="text-3xl font-bold">Welcome!</CardTitle>
+                <CardTitle className="text-3xl font-bold">Welcome, {currentUserEmail || 'Guest'}!</CardTitle>
                 <CardDescription className="text-lg">Your personal AI-powered study assistant. Let's get productive!</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col md:flex-row items-center gap-6">

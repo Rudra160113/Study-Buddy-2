@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added import
 
 const scheduleItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -39,10 +40,13 @@ const scheduleItemSchema = z.object({
 type ScheduleFormValues = z.infer<typeof scheduleItemSchema>;
 
 interface SchedulePlannerProps {
-  initialItems?: ScheduleItem[]; // For potential future use with server-side data
+  initialItems?: ScheduleItem[]; 
 }
 
 export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
+  const currentUserEmail = useCurrentUserEmail();
+  const getStorageKey = () => currentUserEmail ? `${currentUserEmail}_scheduleItems` : 'scheduleItems_guest';
+
   const [items, setItems] = useState<ScheduleItem[]>(initialItems);
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
   const { toast } = useToast();
@@ -57,23 +61,39 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
   });
 
   useEffect(() => {
-    const storedItems = localStorage.getItem('scheduleItems');
+    if (!currentUserEmail && initialItems.length === 0) return; // Don't load if no email and no initial items
+
+    const storageKey = getStorageKey();
+    const storedItems = localStorage.getItem(storageKey);
     if (storedItems) {
-      setItems(JSON.parse(storedItems).map((item: ScheduleItem) => ({...item, deadline: new Date(item.deadline)})));
+      try {
+        const parsedItems = JSON.parse(storedItems).map((item: ScheduleItem) => ({
+          ...item,
+          deadline: new Date(item.deadline)
+        }));
+        setItems(parsedItems);
+      } catch (error) {
+        console.error(`Failed to parse schedule items from localStorage for key ${storageKey}:`, error);
+        localStorage.removeItem(storageKey);
+        setItems(initialItems); // Fallback to initial items if provided
+      }
     } else if (initialItems.length > 0) {
         setItems(initialItems);
-        localStorage.setItem('scheduleItems', JSON.stringify(initialItems));
+        // Optionally save initial items if not found in storage under the user's key
+        // localStorage.setItem(storageKey, JSON.stringify(initialItems));
     }
-  }, [initialItems]);
+  }, [currentUserEmail, initialItems]);
 
   useEffect(() => {
-    // Only update localStorage if items have been loaded or modified,
-    // or if localStorage was initially empty and we're populating it.
-    const storedItems = localStorage.getItem('scheduleItems');
-    if (items.length > 0 || !storedItems || (storedItems && JSON.parse(storedItems).length === 0 && items.length === 0 && initialItems.length === 0)) {
-        localStorage.setItem('scheduleItems', JSON.stringify(items));
+    if (!currentUserEmail && items.length === 0) return; // Don't save if no email and no items
+
+    const storageKey = getStorageKey();
+    // Only save if items array is not the initial default empty array from useState,
+    // or if items have been explicitly set (e.g. from initialProps or user actions)
+    if (items !== initialItems || items.length > 0 || localStorage.getItem(storageKey)) {
+        localStorage.setItem(storageKey, JSON.stringify(items));
     }
-  }, [items, initialItems]);
+  }, [items, currentUserEmail, initialItems]);
 
 
   const onSubmit: SubmitHandler<ScheduleFormValues> = (data) => {
@@ -120,7 +140,6 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
   };
 
   const sortedItems = [...items].sort((a, b) => {
-    // Sort by completion status (incomplete first), then by deadline
     if (a.completed !== b.completed) {
       return a.completed ? 1 : -1;
     }
@@ -180,7 +199,7 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP p") // Added time format
+                              format(field.value, "PPP p") 
                             ) : (
                               <span>Pick a date</span>
                             )}
@@ -193,7 +212,7 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} // Disable past dates
+                          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))} 
                           initialFocus
                         />
                       </PopoverContent>
@@ -283,5 +302,3 @@ export function SchedulePlanner({ initialItems = [] }: SchedulePlannerProps) {
     </div>
   );
 }
-
-    

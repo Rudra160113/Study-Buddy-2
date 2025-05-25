@@ -11,6 +11,7 @@ import { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { generateMathWordProblem, type GenerateMathWordProblemInput, type GenerateMathWordProblemOutput } from '@/ai/flows/generate-math-word-problem-flow';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added
 
 interface CurrentProblemState {
   problemStatement: string;
@@ -24,12 +25,16 @@ interface LeaderboardEntry {
 }
 
 const MAX_LEADERBOARD_ENTRIES = 5;
-const LEADERBOARD_KEY = 'superSumsLeaderboard';
 
 export default function SuperSumsPage() {
+  const currentUserEmail = useCurrentUserEmail();
+  const getLeaderboardKey = useCallback(() => {
+    return currentUserEmail ? `${currentUserEmail}_superSumsLeaderboard` : 'superSumsLeaderboard_guest';
+  }, [currentUserEmail]);
+
   const [level, setLevel] = useState(1);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(10 * 60); 
   const [currentProblem, setCurrentProblem] = useState<CurrentProblemState | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [isGameActive, setIsGameActive] = useState(false);
@@ -39,44 +44,43 @@ export default function SuperSumsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsClient(true);
+    setIsClient(true); // Indicates component has mounted on client
   }, []);
 
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || currentUserEmail === undefined) return; // Wait for client and email
+    
+    const LEADERBOARD_KEY = getLeaderboardKey();
     try {
       const storedLeaderboard = localStorage.getItem(LEADERBOARD_KEY);
       if (storedLeaderboard) {
         setLeaderboard(JSON.parse(storedLeaderboard));
+      } else {
+        setLeaderboard([]); // Initialize if no data
       }
     } catch (error) {
       console.error("Failed to load leaderboard from localStorage", error);
-      setLeaderboard([]); // Fallback to empty
+      setLeaderboard([]); 
     }
-  }, [isClient]);
+  }, [isClient, currentUserEmail, getLeaderboardKey]);
 
   const saveScoreToLeaderboard = useCallback((finalScore: number) => {
-    if (!isClient) return;
+    if (!isClient || currentUserEmail === undefined) return;
     
-    // Prevent saving score if game hasn't really started or score is 0 and no problem was attempted
     if (finalScore === 0 && level === 1 && !currentProblem) {
-        // Could add a toast or log here if needed, but for now just don't save.
         return;
     }
-
+    const LEADERBOARD_KEY = getLeaderboardKey();
     const newEntry: LeaderboardEntry = {
-      playerName: `Player ${Math.floor(100 + Math.random() * 900)}`, // Simple placeholder name
+      playerName: `Player ${Math.floor(100 + Math.random() * 900)}`, 
       score: finalScore,
       date: new Date().toISOString(),
     };
 
     try {
-      // Use a functional update for setLeaderboard if it depends on previous state
-      // to ensure we have the latest version from localStorage if multiple saves happen quickly
-      // (though unlikely here)
       setLeaderboard(prevLeaderboard => {
         const currentLeaderboard = [...prevLeaderboard, newEntry];
-        currentLeaderboard.sort((a, b) => b.score - a.score || new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by score, then by date
+        currentLeaderboard.sort((a, b) => b.score - a.score || new Date(b.date).getTime() - new Date(a.date).getTime()); 
         const updatedLeaderboard = currentLeaderboard.slice(0, MAX_LEADERBOARD_ENTRIES);
         localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(updatedLeaderboard));
         return updatedLeaderboard;
@@ -89,7 +93,7 @@ export default function SuperSumsPage() {
           variant: "destructive"
       })
     }
-  }, [isClient, toast, currentProblem, level]);
+  }, [isClient, currentUserEmail, getLeaderboardKey, currentProblem, level, toast]);
 
 
   const fetchNewProblem = useCallback(async (currentLevel: number) => {
@@ -115,10 +119,12 @@ export default function SuperSumsPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (isGameActive && level > 0) {
+    if (isGameActive && level > 0 && !currentProblem && !isLoadingProblem) { // Ensure problem isn't already loading
       fetchNewProblem(level);
     }
-  }, [isGameActive, level, fetchNewProblem]);
+  // Omitting currentProblem from deps to avoid re-fetching if it's just set
+  // eslint-disable-next-line react-hooks/exhaustive-deps 
+  }, [isGameActive, level, fetchNewProblem, isLoadingProblem]); 
 
   useEffect(() => {
     if (!isGameActive || timeLeft <= 0) return;
@@ -147,11 +153,15 @@ export default function SuperSumsPage() {
 
 
   const handleStartGame = () => {
+    if (currentUserEmail === undefined) {
+        toast({title: "Loading user data...", description: "Please wait a moment."});
+        return;
+    }
     setLevel(1);
     setScore(0);
     setTimeLeft(10 * 60);
     setUserAnswer('');
-    setCurrentProblem(null); // Clear any existing problem before fetching new
+    setCurrentProblem(null); 
     setIsGameActive(true);
     toast({ title: "Game Started!", description: "Solve the word problems. Timer resets on correct answers!" });
   };
@@ -167,18 +177,20 @@ export default function SuperSumsPage() {
     }
 
     if (answerNum === currentProblem.answer) {
-      const newScore = score + (10 * level); // Score based on level
+      const newScore = score + (10 * level); 
       setScore(newScore);
       setTimeLeft(10 * 60); 
       toast({ title: "Correct!", description: `+${10 * level} points! Timer reset.`, className: "bg-green-500 text-white" });
       
-      if (level < 100 && newScore % (50 * level) === 0 && newScore > 0 ) { 
-        const newLevel = level + 1;
-        setLevel(newLevel);
-        toast({ title: "Level Up!", description: `You've reached level ${newLevel}!` });
+      const newLevel = level + 1;
+      if (newLevel <= 100) { // Assuming max 100 levels
+          setLevel(newLevel);
+          // Fetch problem for new level directly
+          fetchNewProblem(newLevel);
       } else {
-        fetchNewProblem(level); 
+          handleGameOver(newScore, "Congratulations! You've mastered all levels!");
       }
+
     } else {
       handleGameOver(score, `Incorrect. The correct answer was ${currentProblem.answer}.`, "destructive");
     }
@@ -190,7 +202,7 @@ export default function SuperSumsPage() {
     toast({ title: "Problem Skipped", description: "Here's a new one!"});
     fetchNewProblem(level);
     setUserAnswer('');
-    setScore(prevScore => Math.max(0, prevScore - (5 * level))); // Penalty for skipping
+    setScore(prevScore => Math.max(0, prevScore - (5 * level))); 
   }
 
   const formatTime = (seconds: number) => {
@@ -199,7 +211,7 @@ export default function SuperSumsPage() {
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
   };
   
-  if (!isClient) {
+  if (!isClient || currentUserEmail === undefined) { // Show loading if not client or email not yet resolved
     return (
         <AppShell>
             <div className="container mx-auto py-8 text-center">
@@ -285,10 +297,7 @@ export default function SuperSumsPage() {
                   </p>
                 </div>
               )}
-              {!isLoadingProblem && !currentProblem && !isGameActive && (
-                 <p className="text-muted-foreground py-4">Game Over. Click 'Start Game' to play again.</p>
-              )}
-               {!isLoadingProblem && !currentProblem && isGameActive && (
+              {!isLoadingProblem && !currentProblem && isGameActive && (
                  <p className="text-muted-foreground py-4">Preparing your first problem...</p>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -357,10 +366,7 @@ export default function SuperSumsPage() {
                 )}
             </CardContent>
         </Card>
-
       </div>
     </AppShell>
   );
 }
-
-    

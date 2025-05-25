@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, RotateCcw, Leaf, ShieldAlert, ImageOff } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added
 
 interface JurassicCreature {
   name: string;
@@ -20,35 +21,25 @@ interface JurassicCreature {
 }
 
 const PREDEFINED_CREATURES: string[] = [
-  "Tyrannosaurus Rex", // Cretaceous, but iconic
-  "Triceratops",       // Cretaceous, but iconic
-  "Stegosaurus",
-  "Velociraptor",      // Cretaceous, but iconic
-  "Pterodactylus",     // Often "Pterodactyl"
-  "Brachiosaurus",
-  "Ankylosaurus",      // Cretaceous, but iconic
-  "Allosaurus",
-  "Dilophosaurus",
-  "Mosasaurus",        // Cretaceous marine reptile, iconic
-  "Plesiosaurus",
-  "Compsognathus",
-  "Apatosaurus",
-  "Diplodocus",
-  "Ceratosaurus",
-  "Kentrosaurus",
-  "Ichthyosaurus",
-  "Rhamphorhynchus",
-  "Megalosaurus",
-  "Archaeopteryx"      // Famous Jurassic bird-like dinosaur
+  "Tyrannosaurus Rex", "Triceratops", "Stegosaurus", "Velociraptor", 
+  "Pterodactylus", "Brachiosaurus", "Ankylosaurus", "Allosaurus",
+  "Dilophosaurus", "Mosasaurus", "Plesiosaurus", "Compsognathus",
+  "Apatosaurus", "Diplodocus", "Ceratosaurus", "Kentrosaurus",
+  "Ichthyosaurus", "Rhamphorhynchus", "Megalosaurus", "Archaeopteryx"
 ];
 
-const LOCAL_STORAGE_KEY = 'jurassicWorldCreaturesData';
 
 export default function JurassicWorldPage() {
+  const currentUserEmail = useCurrentUserEmail();
+  const getLocalStorageKey = useCallback(() => {
+    return currentUserEmail ? `${currentUserEmail}_jurassicWorldCreaturesData` : 'jurassicWorldCreaturesData_guest';
+  }, [currentUserEmail]);
+
+
   const [creatures, setCreatures] = useState<JurassicCreature[]>(
     PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false }))
   );
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(true); // Overall page loading state
   const { toast } = useToast();
 
   const fetchIndividualCreatureImage = useCallback(async (creatureName: string, index: number): Promise<string | null> => {
@@ -59,21 +50,28 @@ export default function JurassicWorldPage() {
       return result.imageUrl;
     } catch (error) {
       console.error(`Failed to generate image for ${creatureName}:`, error);
-      toast({ title: "Image Generation Error", description: `Could not load image for: ${creatureName}`, variant: "destructive" });
+      // Toast is now handled by the caller if needed, to avoid duplicate toasts during bulk fetch.
       setCreatures(prev => prev.map((c, i) => i === index ? { ...c, imageUrl: null, isLoading: false, error: true } : c));
       return null;
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
+    if (currentUserEmail === undefined) { // Wait for email to be resolved
+      setIsPageLoading(true);
+      return;
+    }
+
     const loadCreaturesAndPersist = async () => {
-      setIsInitialLoading(true);
+      setIsPageLoading(true);
+      const LOCAL_STORAGE_KEY = getLocalStorageKey();
       let initialCreatureStates: JurassicCreature[] = PREDEFINED_CREATURES.map(name => ({
         name,
         imageUrl: null,
         isLoading: false,
         error: false
       }));
+      let imagesToSaveToStorage: Array<{ name: string, imageUrl: string | null }> = [];
       let newImagesWereFetchedThisSession = false;
 
       try {
@@ -82,46 +80,51 @@ export default function JurassicWorldPage() {
           const cachedItems: Array<{ name: string, imageUrl: string | null }> = JSON.parse(cachedDataRaw);
           const cachedMap = new Map(cachedItems.map(item => [item.name, item.imageUrl]));
           
-          // Ensure all PREDEFINED_CREATURES are represented, using cache if available
           initialCreatureStates = PREDEFINED_CREATURES.map(name => ({
             name,
             imageUrl: cachedMap.get(name) || null,
             isLoading: false,
-            error: false
+            error: false // Reset error state from cache if image exists
           }));
+          imagesToSaveToStorage = [...cachedItems]; // Start with cached items
+        } else {
+          imagesToSaveToStorage = PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null }));
         }
       } catch (e) {
         console.error("Failed to parse cached creature data. Clearing cache.", e);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
+        imagesToSaveToStorage = PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null }));
       }
 
-      setCreatures(initialCreatureStates);
+      setCreatures(initialCreatureStates); // Set initial state from cache first
 
-      const creaturesForStorage = initialCreatureStates.map(c => ({ name: c.name, imageUrl: c.imageUrl }));
+      const imagesToFetchPromises: Promise<void>[] = [];
 
       for (let i = 0; i < initialCreatureStates.length; i++) {
-        if (!initialCreatureStates[i].imageUrl) { // Only fetch if not already in state (from cache or just initialized)
-          const fetchedUrl = await fetchIndividualCreatureImage(initialCreatureStates[i].name, i);
-          if (fetchedUrl) {
-            const creatureToUpdate = creaturesForStorage.find(cfs => cfs.name === initialCreatureStates[i].name);
-            if (creatureToUpdate) {
-                creatureToUpdate.imageUrl = fetchedUrl;
-            }
-            newImagesWereFetchedThisSession = true;
-          } else {
-            const creatureToUpdate = creaturesForStorage.find(cfs => cfs.name === initialCreatureStates[i].name);
-             if (creatureToUpdate) {
-                creatureToUpdate.imageUrl = null; 
-            }
-          }
+        if (!initialCreatureStates[i].imageUrl) { 
+          imagesToFetchPromises.push(
+            (async () => {
+              const fetchedUrl = await fetchIndividualCreatureImage(initialCreatureStates[i].name, i);
+              const creatureInStorage = imagesToSaveToStorage.find(cfs => cfs.name === initialCreatureStates[i].name);
+              if (creatureInStorage) {
+                creatureInStorage.imageUrl = fetchedUrl;
+              } else { // Should not happen if imagesToSaveToStorage is initialized correctly
+                imagesToSaveToStorage.push({ name: initialCreatureStates[i].name, imageUrl: fetchedUrl });
+              }
+              if (fetchedUrl) {
+                newImagesWereFetchedThisSession = true;
+              }
+            })()
+          );
         }
       }
       
+      await Promise.all(imagesToFetchPromises);
+      
       if (newImagesWereFetchedThisSession || !localStorage.getItem(LOCAL_STORAGE_KEY)) {
         try {
-          // Filter out any creatures that might not be in PREDEFINED_CREATURES anymore if the list shrinks
           const currentPredefinedNames = new Set(PREDEFINED_CREATURES);
-          const filteredForStorage = creaturesForStorage.filter(c => currentPredefinedNames.has(c.name));
+          const filteredForStorage = imagesToSaveToStorage.filter(c => currentPredefinedNames.has(c.name));
           localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filteredForStorage));
         } catch (e: any) {
           if (e.name === 'QuotaExceededError') {
@@ -133,59 +136,75 @@ export default function JurassicWorldPage() {
             });
           } else {
             console.error("Failed to save to localStorage:", e);
+             toast({ title: "Storage Error", description: "Could not save all image data.", variant: "destructive" });
           }
         }
       }
-      setIsInitialLoading(false);
+      setIsPageLoading(false);
     };
 
     loadCreaturesAndPersist();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // fetchIndividualCreatureImage was removed from deps to avoid re-triggering on its identity change. Logic revised to fetch only missing items.
+  }, [currentUserEmail, fetchIndividualCreatureImage, getLocalStorageKey, toast]);
 
   const handleRefreshAllImages = () => {
     const confirmRefresh = window.confirm("Are you sure you want to refresh all images? This will clear existing images and regenerate them, which may take some time and browser resources.");
     if (confirmRefresh) {
+      const LOCAL_STORAGE_KEY = getLocalStorageKey();
       localStorage.removeItem(LOCAL_STORAGE_KEY);
-      // Re-trigger the loadCreaturesAndPersist effect by resetting state that leads to re-fetching
-      setCreatures(PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false })));
-      // The useEffect will run again. We can explicitly call loadCreaturesAndPersist, but this needs care to avoid infinite loops
-      // or manage the isInitialLoading state correctly.
-      // For simplicity, we rely on the useEffect to re-run if its dependencies change,
-      // however, since its dependency array is now empty, we need to explicitly trigger it.
-      // The simplest way to re-trigger the effect on demand like this for a full refresh
-      // would be to re-mount the component or introduce a key that changes.
-      // Or, for this specific action, we can just mimic the useEffect's logic:
-      const reload = async () => {
-         setIsInitialLoading(true);
-         const freshCreatures = PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false }));
-         setCreatures(freshCreatures); // Set state to loading appearances
-         
-         const creaturesForStorage = freshCreatures.map(c => ({ name: c.name, imageUrl: c.imageUrl }));
-         let newImagesWereFetchedThisSession = false;
+      
+      // Trigger useEffect to reload by changing a dependency or explicitly calling the load function.
+      // Forcing a re-render by setting creatures to an initial loading state.
+      setCreatures(PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: true, error: false })));
+      
+      // Re-trigger the main effect. A more direct call to loadCreaturesAndPersist would be better
+      // but involves careful state management of isPageLoading.
+      // Forcing a key change on the component or a dummy state change is another way.
+      // Here, we rely on a slight modification of state to re-trigger, then useEffect does its job.
+      // Simulate a change to currentUserEmail to re-trigger if it was already set. This is a bit hacky.
+      // A cleaner way would be to extract loadCreaturesAndPersist and call it.
+      if (currentUserEmail !== undefined) { // Make sure it's not in its initial undefined state
+        const currentEmail = currentUserEmail; // capture current value
+        // Temporarily set to a value that will cause re-evaluation and then back
+        // This approach is not ideal. Let's just re-initiate the states and let useEffect handle it.
+        setIsPageLoading(true); // Reset page loading
+         // The useEffect will re-run due to currentUserEmail potentially changing or if it was undefined.
+         // More directly, we should ensure the loadCreaturesAndPersist can be called on demand.
+         // For simplicity in this pass, we'll set creatures to a loading state
+         // and let the existing useEffect logic handle the full fetch if needed (or the next mount)
+         // A more robust solution would be to explicitly call the loading function.
+        setCreatures(PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false })));
+         // The useEffect should handle this reset. If currentUserEmail is stable, it might not refetch
+         // unless we set imageUrls to null explicitly.
+         // Let's refine this to make the reload more explicit
+        const reload = async () => {
+          setIsPageLoading(true);
+          const freshCreatures = PREDEFINED_CREATURES.map(name => ({ name, imageUrl: null, isLoading: false, error: false }));
+          setCreatures(freshCreatures); // Set state to loading appearances
+          
+          const imagesToSaveToStorage = freshCreatures.map(c => ({ name: c.name, imageUrl: c.imageUrl }));
+          let newImagesWereFetched = false;
 
-         for (let i = 0; i < freshCreatures.length; i++) {
-            const fetchedUrl = await fetchIndividualCreatureImage(freshCreatures[i].name, i);
-            if (fetchedUrl) {
-                creaturesForStorage[i].imageUrl = fetchedUrl;
-                newImagesWereFetchedThisSession = true;
-            } else {
-                creaturesForStorage[i].imageUrl = null;
-            }
-        }
-        if (newImagesWereFetchedThisSession) {
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(creaturesForStorage));
-            } catch (e: any) { /* ... quota error handling ... */ }
-        }
-        setIsInitialLoading(false);
-      };
-      reload();
+          const fetchPromises = freshCreatures.map((creature, index) => 
+            fetchIndividualCreatureImage(creature.name, index).then(url => {
+              imagesToSaveToStorage[index].imageUrl = url;
+              if (url) newImagesWereFetched = true;
+            })
+          );
+          await Promise.all(fetchPromises);
+
+          if (newImagesWereFetched) {
+              try {
+                  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(imagesToSaveToStorage));
+              } catch (e: any) { /* ... quota error handling ... */ }
+          }
+          setIsPageLoading(false);
+        };
+        reload();
+      }
     }
   };
 
-
-  if (isInitialLoading && creatures.every(c => !c.imageUrl && !c.error && !c.isLoading)) {
+  if (isPageLoading && creatures.every(c => !c.imageUrl && !c.error && !c.isLoading)) {
     return (
       <AppShell>
         <div className="container mx-auto py-8 space-y-8">
@@ -223,7 +242,7 @@ export default function JurassicWorldPage() {
         </header>
 
         <div className="flex justify-center">
-          <Button onClick={handleRefreshAllImages} variant="outline">
+          <Button onClick={handleRefreshAllImages} variant="outline" disabled={isPageLoading || creatures.some(c => c.isLoading)}>
             <RotateCcw className="mr-2 h-4 w-4" /> Refresh All Images
           </Button>
         </div>

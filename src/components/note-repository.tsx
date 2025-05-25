@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Note } from '@/lib/types';
@@ -25,6 +26,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added import
 
 const noteSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -35,6 +37,9 @@ const noteSchema = z.object({
 type NoteFormValues = z.infer<typeof noteSchema>;
 
 export function NoteRepository() {
+  const currentUserEmail = useCurrentUserEmail();
+  const getStorageKey = () => currentUserEmail ? `${currentUserEmail}_studyNotes` : 'studyNotes_guest';
+
   const [notes, setNotes] = useState<Note[]>([]);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const { toast } = useToast();
@@ -49,17 +54,32 @@ export function NoteRepository() {
   });
 
   useEffect(() => {
-    const storedNotes = localStorage.getItem('studyNotes');
+    if (currentUserEmail === undefined) return; // Wait for email to be resolved
+
+    const storageKey = getStorageKey();
+    const storedNotes = localStorage.getItem(storageKey);
     if (storedNotes) {
-      setNotes(JSON.parse(storedNotes).map((note: Note) => ({...note, createdAt: new Date(note.createdAt)})));
+      try {
+        setNotes(JSON.parse(storedNotes).map((note: Note) => ({...note, createdAt: new Date(note.createdAt)})));
+      } catch (error) {
+        console.error(`Failed to parse notes from localStorage for key ${storageKey}:`, error);
+        localStorage.removeItem(storageKey);
+        setNotes([]);
+      }
+    } else {
+      setNotes([]);
     }
-  }, []);
+  }, [currentUserEmail]);
 
   useEffect(() => {
-    if (notes.length > 0 || localStorage.getItem('studyNotes')) {
-        localStorage.setItem('studyNotes', JSON.stringify(notes));
+    if (currentUserEmail === undefined && notes.length === 0) return;
+
+    const storageKey = getStorageKey();
+    // Save only if notes is not the initial empty array OR if an item existed in localStorage before
+    if (notes.length > 0 || localStorage.getItem(storageKey)) {
+        localStorage.setItem(storageKey, JSON.stringify(notes));
     }
-  }, [notes]);
+  }, [notes, currentUserEmail]);
 
   const onSubmit: SubmitHandler<NoteFormValues> = (data) => {
     if (editingNote) {
@@ -72,7 +92,7 @@ export function NoteRepository() {
         ...data,
         createdAt: new Date(),
       };
-      setNotes([newNote, ...notes]); // Add new notes to the top
+      setNotes([newNote, ...notes]); 
       toast({ title: "Note Added", description: `"${data.title}" has been added.` });
     }
     form.reset();
@@ -162,9 +182,9 @@ export function NoteRepository() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Your Notes</h2>
-        {sortedNotes.length === 0 ? (
-          <p className="text-muted-foreground">No notes yet. Add some notes to get started!</p>
-        ) : (
+        {notes.length === 0 && !currentUserEmail && <p className="text-muted-foreground">Please sign in to manage your notes.</p>}
+        {notes.length === 0 && currentUserEmail && <p className="text-muted-foreground">No notes yet. Add some notes to get started!</p>}
+        {sortedNotes.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {sortedNotes.map(note => (
               <Card key={note.id} className="shadow-md flex flex-col">
