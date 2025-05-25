@@ -4,8 +4,8 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, ChevronLeft } from 'lucide-react'; // Added ChevronLeft
-import Link from 'next/link'; // Added Link
+import { Sun, Moon, ChevronLeft } from 'lucide-react'; 
+import Link from 'next/link'; 
 // import { useTheme } from 'next-themes'; 
 // import { useEffect, useState } from 'react';
 
@@ -22,7 +22,8 @@ const getPageTitle = (pathname: string): string => {
     case '/gaming/bodmas-masters': return 'BODMAS Masters';
     case '/gaming/dice-probability': return 'Dice Probability Challenge';
     case '/gaming/pattern-recall': return 'Pattern Recall Challenge';
-    case '/gaming/hindi-riddles': return 'Hindi Paheliyan Challenge'; // New game title
+    case '/gaming/hindi-riddles': return 'Hindi Paheliyan Challenge';
+    case '/gaming/logic-riddles': return 'Logic Riddles Challenge'; // New game title
     case '/coding': return 'Coding Zone';
     case '/ide': return 'IDE';
     default: 

@@ -11,11 +11,13 @@ import '@/ai/flows/generate-math-word-problem-flow.ts';
 import '@/ai/flows/generate-bodmas-problem-flow.ts';
 import '@/ai/flows/generate-dice-probability-problem-flow.ts';
 import '@/ai/flows/generate-pattern-image-flow.ts';
-import '@/ai/flows/generate-hindi-riddle-flow.ts'; // Added new Hindi riddle flow
+import '@/ai/flows/generate-hindi-riddle-flow.ts';
+import '@/ai/flows/generate-logic-riddle-flow.ts'; // Added new logic riddle flow
 
     
 
     
+
 
 
 

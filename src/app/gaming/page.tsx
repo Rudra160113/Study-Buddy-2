@@ -2,7 +2,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare, Dices, Eye, MessageCircleQuestion } from 'lucide-react';
+import { Gamepad2, Puzzle, Brain, Calculator, BookOpen, Code, DivideSquare, Dices, Eye, MessageCircleQuestion, BrainCircuit } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GamingPage() {
@@ -80,10 +80,19 @@ export default function GamingPage() {
               </Button>
                <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
                 <Link href="/gaming/hindi-riddles">
-                  <MessageCircleQuestion className="mr-3 h-6 w-6 text-primary" /> {/* Changed icon */}
+                  <MessageCircleQuestion className="mr-3 h-6 w-6 text-primary" />
                   <div>
                     <p className="font-semibold text-lg">Hindi Paheliyan</p>
                     <p className="text-sm text-muted-foreground">Riddle Challenge</p>
+                  </div>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start p-6 h-auto text-left shadow-sm hover:shadow-md transition-shadow">
+                <Link href="/gaming/logic-riddles">
+                  <BrainCircuit className="mr-3 h-6 w-6 text-primary" />
+                  <div>
+                    <p className="font-semibold text-lg">Logic Riddles</p>
+                    <p className="text-sm text-muted-foreground">Brain Teasers</p>
                   </div>
                 </Link>
               </Button>
