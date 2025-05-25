@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Save, Settings2, TerminalSquare, Trash2, Bot, Terminal } from 'lucide-react';
+import { useState } from 'react'; // Added for managing selected language
 
 export default function IdePage() {
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript"); // Default to JavaScript
+
   return (
     <AppShell>
       <div className="container mx-auto py-8 flex flex-col h-[calc(100vh-8rem)]"> {/* Adjust height for viewport filling */}
@@ -29,9 +32,9 @@ export default function IdePage() {
                 <CardTitle className="text-2xl">Code Editor</CardTitle>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <Select disabled>
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                   <SelectTrigger className="w-[150px] h-8 text-xs">
-                    <SelectValue placeholder="JavaScript" />
+                    <SelectValue placeholder="Select Language" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="javascript">JavaScript</SelectItem>
@@ -41,6 +44,11 @@ export default function IdePage() {
                     <SelectItem value="java">Java</SelectItem>
                     <SelectItem value="csharp">C#</SelectItem>
                     <SelectItem value="cpp">C++</SelectItem>
+                    <SelectItem value="typescript">TypeScript</SelectItem>
+                    <SelectItem value="ruby">Ruby</SelectItem>
+                    <SelectItem value="go">Go</SelectItem>
+                    <SelectItem value="swift">Swift</SelectItem>
+                    <SelectItem value="kotlin">Kotlin</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select disabled>
