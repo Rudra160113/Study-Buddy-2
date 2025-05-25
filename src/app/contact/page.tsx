@@ -9,20 +9,29 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Mail, Send, User, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export default function ContactUsPage() {
   const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, you would handle form submission here (e.g., send an email or save to a database)
+    // In a real app, you would handle form submission here (e.g., send to a backend)
+    
+    // For now, simulate sending and show a toast
     toast({
       title: "Message Sent (Simulated)",
-      description: "Thank you for your message! We'll get back to you soon.",
-      className: "bg-green-500 text-white",
+      description: "Thank you for your message! We'll get back to you soon (this is a simulation).",
+      className: "bg-green-500 text-white", // Example custom styling for success
     });
-    // Clear the form (optional)
-    (event.target as HTMLFormElement).reset();
+
+    // Clear the form
+    setName('');
+    setEmail('');
+    setMessage('');
   };
 
   return (
@@ -78,7 +87,7 @@ export default function ContactUsPage() {
                 Send Us a Message
               </CardTitle>
               <CardDescription>
-                Fill out the form below (this is a placeholder and not functional).
+                Fill out the form below to send us a message.
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
@@ -87,31 +96,55 @@ export default function ContactUsPage() {
                   <Label htmlFor="name" className="flex items-center gap-1.5">
                     <User className="h-4 w-4 text-muted-foreground" /> Your Name
                   </Label>
-                  <Input id="name" placeholder="John Doe" type="text" required disabled className="bg-muted/30"/>
+                  <Input 
+                    id="name" 
+                    placeholder="John Doe" 
+                    type="text" 
+                    required 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-card focus:ring-primary/50"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-1.5">
                     <Mail className="h-4 w-4 text-muted-foreground" /> Your Email
                   </Label>
-                  <Input id="email" placeholder="you@example.com" type="email" required disabled className="bg-muted/30"/>
+                  <Input 
+                    id="email" 
+                    placeholder="you@example.com" 
+                    type="email" 
+                    required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-card focus:ring-primary/50"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="message" className="flex items-center gap-1.5">
                     <MessageSquare className="h-4 w-4 text-muted-foreground" /> Your Message
                   </Label>
-                  <Textarea id="message" placeholder="Tell us how we can help..." rows={5} required disabled className="bg-muted/30"/>
+                  <Textarea 
+                    id="message" 
+                    placeholder="Tell us how we can help..." 
+                    rows={5} 
+                    required 
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="bg-card focus:ring-primary/50"
+                  />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled>
-                  <Send className="mr-2 h-4 w-4" /> Send Message (Disabled)
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+                  <Send className="mr-2 h-4 w-4" /> Send Message
                 </Button>
               </CardFooter>
             </form>
           </Card>
         </div>
          <p className="text-center text-sm text-muted-foreground mt-10">
-            Please note: The contact form is a visual placeholder and does not send messages. For inquiries, please use the email address provided.
+            Please note: The contact form simulates sending a message. For actual inquiries, please use the email address provided.
         </p>
       </div>
     </AppShell>
