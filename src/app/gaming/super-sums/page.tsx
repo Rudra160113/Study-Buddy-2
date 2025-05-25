@@ -48,7 +48,6 @@ export default function SuperSumsPage() {
         description: "Could not fetch a new word problem. Please try again or restart the game.",
         variant: "destructive",
       });
-      // Fallback or reset game state if needed
       setCurrentProblem({ problemStatement: "Error: Could not load problem.", answer: 0 });
     } finally {
       setIsLoadingProblem(false);
@@ -56,7 +55,7 @@ export default function SuperSumsPage() {
   }, [toast]);
 
   useEffect(() => {
-    if (isGameActive && level > 0) { // Fetch problem when game starts or level changes
+    if (isGameActive && level > 0) {
       fetchNewProblem(level);
     }
   }, [isGameActive, level, fetchNewProblem]);
@@ -77,9 +76,9 @@ export default function SuperSumsPage() {
       setIsGameActive(false);
       toast({
         title: "Time's Up!",
-        description: `Your final score is ${score}. Great effort!`,
+        description: `Your final score is ${score}. Great effort! Click 'Start Game' to play again.`,
         variant: "default",
-        duration: 5000,
+        duration: 7000,
       });
     }
   }, [timeLeft, isGameActive, score, toast]);
@@ -90,8 +89,8 @@ export default function SuperSumsPage() {
     setScore(0);
     setTimeLeft(10 * 60);
     setUserAnswer('');
-    setIsGameActive(true); // This will trigger problem fetching via useEffect
-    toast({ title: "Game Started!", description: "Solve the word problems as quickly as you can." });
+    setIsGameActive(true);
+    toast({ title: "Game Started!", description: "Solve the word problems. Timer resets on correct answers!" });
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -107,19 +106,24 @@ export default function SuperSumsPage() {
     if (answerNum === currentProblem.answer) {
       const newScore = score + 10;
       setScore(newScore);
-      toast({ title: "Correct!", description: "+10 points!", className: "bg-green-500 text-white" });
+      setTimeLeft(10 * 60); // Reset timer on correct answer
+      toast({ title: "Correct!", description: "+10 points! Timer reset.", className: "bg-green-500 text-white" });
       
-      if (newScore % 50 === 0 && newScore > 0) { // Level up every 50 points (5 correct answers)
+      if (newScore % 50 === 0 && newScore > 0) { 
         const newLevel = level + 1;
         setLevel(newLevel);
         toast({ title: "Level Up!", description: `You've reached level ${newLevel}!` });
-        // New problem for new level will be fetched by useEffect
       } else {
-        fetchNewProblem(level); // Fetch new problem for current level
+        fetchNewProblem(level); 
       }
     } else {
-      toast({ title: "Incorrect", description: "Try again or skip the problem.", variant: "destructive" });
-      // User can re-attempt or skip. New problem isn't forced on incorrect.
+      setIsGameActive(false); // Game over on incorrect answer
+      toast({ 
+        title: "Incorrect. Game Over!", 
+        description: `The correct answer was ${currentProblem.answer}. Your final score: ${score}. Click 'Start Game' to play again.`, 
+        variant: "destructive",
+        duration: 7000,
+      });
     }
     setUserAnswer('');
   };
@@ -129,6 +133,7 @@ export default function SuperSumsPage() {
     toast({ title: "Problem Skipped", description: "Here's a new one!"});
     fetchNewProblem(level);
     setUserAnswer('');
+    // Optionally, you could penalize score or time for skipping.
   }
 
   const formatTime = (seconds: number) => {
@@ -155,7 +160,7 @@ export default function SuperSumsPage() {
             Super Sums: Word Challenge
           </h1>
           <p className="text-xl text-muted-foreground">
-            Test your math skills with word problems! (10 Minute Timer)
+            Solve AI-generated word problems. Timer resets on correct answers!
           </p>
         </header>
 
@@ -166,22 +171,27 @@ export default function SuperSumsPage() {
                 <Brain className="h-10 w-10 text-accent" />
                 Ready to Play?
               </CardTitle>
+              {score > 0 && timeLeft > 0 && ( // Show final score if game ended prematurely by wrong answer but time wasn't up
+                 <CardDescription className="text-lg font-semibold">
+                    Last Score: {score}
+                 </CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               <p className="text-lg text-muted-foreground mb-6">
-                You'll have 10 minutes to solve as many math word problems as you can.
-                Difficulty increases as you progress through levels.
+                You'll get 10 minutes per question. Timer resets if you're correct!
+                Answer incorrectly, and the game ends.
               </p>
               <Button onClick={handleStartGame} size="lg" className="bg-primary hover:bg-primary/90 w-full">
                 Start Game
               </Button>
             </CardContent>
             <CardFooter>
-                <p className="text-xs text-muted-foreground mx-auto">Full game with 100 levels and progressive difficulty under development.</p>
+                <p className="text-xs text-muted-foreground mx-auto">Difficulty increases as you level up.</p>
             </CardFooter>
           </Card>
         ) : (
-          <Card className="shadow-xl max-w-lg mx-auto"> {/* Increased max-w for word problems */}
+          <Card className="shadow-xl max-w-lg mx-auto">
             <CardHeader className="pb-4">
               <div className="flex justify-between items-center text-lg">
                 <div className="font-semibold text-primary flex items-center gap-1">
@@ -190,17 +200,18 @@ export default function SuperSumsPage() {
                 <div className="font-semibold text-accent flex items-center gap-1">
                   <Trophy className="h-5 w-5" /> Score: {score}
                 </div>
-                <div className="font-semibold text-destructive flex items-center gap-1">
+                <div className={`font-semibold flex items-center gap-1 ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-destructive'}`}>
                   <Clock className="h-5 w-5" /> Time: {formatTime(timeLeft)}
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 text-center min-h-[150px]"> {/* Added min-h for problem area */}
+            <CardContent className="space-y-6 text-center min-h-[150px]">
               {isLoadingProblem && (
                 <div className="space-y-3 py-4">
                     <Skeleton className="h-6 w-3/4 mx-auto" />
                     <Skeleton className="h-5 w-full mx-auto" />
                     <Skeleton className="h-5 w-5/6 mx-auto" />
+                    <p className="text-sm text-muted-foreground mt-2">AI is crafting a new problem...</p>
                 </div>
               )}
               {!isLoadingProblem && currentProblem && (
@@ -211,7 +222,7 @@ export default function SuperSumsPage() {
                 </div>
               )}
               {!isLoadingProblem && !currentProblem && (
-                 <p className="text-muted-foreground py-4">No problem loaded. This shouldn't happen.</p>
+                 <p className="text-muted-foreground py-4">Waiting for problem...</p>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -228,7 +239,8 @@ export default function SuperSumsPage() {
                   />
                 </div>
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={timeLeft <=0 || isLoadingProblem || !currentProblem}>
-                  <Check className="mr-2 h-5 w-5" /> Submit Answer
+                  {isLoadingProblem ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Check className="mr-2 h-5 w-5" />}
+                  {isLoadingProblem ? 'Loading...' : 'Submit Answer'}
                 </Button>
               </form>
             </CardContent>
@@ -248,6 +260,7 @@ export default function SuperSumsPage() {
             </CardHeader>
             <CardContent>
                 <p className="text-muted-foreground text-center">Top scores will be displayed here!</p>
+                {/* Static Leaderboard Placeholder */}
                 <div className="space-y-2 mt-4">
                     <div className="flex justify-between p-2 bg-secondary/30 rounded"><span>Player1</span><span>1200 pts</span></div>
                     <div className="flex justify-between p-2 bg-secondary/30 rounded"><span>Player2</span><span>950 pts</span></div>
