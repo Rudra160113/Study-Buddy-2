@@ -22,7 +22,8 @@ import {
   Mail,
   Smile,
   FlaskConical,
-  Newspaper, // Added Newspaper icon
+  Newspaper, 
+  HelpCircle, // Added HelpCircle for Custom Question Generator
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,7 +38,8 @@ const navItems = [
   { href: '/ide', label: 'IDE', icon: TerminalSquare },
   { href: '/jokes', label: 'Jokes', icon: Smile },
   { href: '/science-facts', label: 'Science Facts', icon: FlaskConical },
-  { href: '/science-news', label: 'Science News', icon: Newspaper }, // New "Science News" item
+  { href: '/science-news', label: 'Science News', icon: Newspaper },
+  { href: '/custom-quiz-generator', label: 'Custom Q-Generator', icon: HelpCircle }, // New Item
   { href: '/contact', label: 'Contact Us', icon: Mail },
 ];
 

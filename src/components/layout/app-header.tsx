@@ -29,7 +29,8 @@ const getPageTitle = (pathname: string): string => {
     case '/ide': return 'IDE';
     case '/jokes': return 'Jokes Corner';
     case '/science-facts': return 'Science Facts';
-    case '/science-news': return 'Science Highlights'; // New mapping for Science News
+    case '/science-news': return 'Science Highlights';
+    case '/custom-quiz-generator': return 'Custom Question Generator'; // New mapping
     case '/contact': return 'Contact Us';
     default: 
       if (pathname.startsWith('/gaming/')) return 'Game Details'; // Generic for other games
