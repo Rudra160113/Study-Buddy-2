@@ -29,7 +29,7 @@ const getPageTitle = (pathname: string): string => {
     case '/ide': return 'IDE';
     case '/jokes': return 'Jokes Corner';
     case '/science-facts': return 'Science Facts';
-    // case '/science-news': return 'Science Highlights'; // Removed this line
+    case '/science-news': return 'Science Highlights';
     case '/custom-quiz-generator': return 'Custom Question Generator';
     case '/query-handler': return 'Query Handler';
     case '/jurassic-world': return 'Jurassic World';

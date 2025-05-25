@@ -73,4 +73,3 @@ const generateScienceHighlightFlow = ai.defineFlow(
     return output;
   }
 );
-
