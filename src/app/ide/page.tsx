@@ -7,10 +7,42 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Play, Save, Settings2, TerminalSquare, Trash2, Bot, Terminal } from 'lucide-react';
-import { useState } from 'react'; // Added for managing selected language
+import { useState } from 'react';
 
 export default function IdePage() {
-  const [selectedLanguage, setSelectedLanguage] = useState("javascript"); // Default to JavaScript
+  const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [code, setCode] = useState<string>("// Your JavaScript code goes here...\nconsole.log('Hello from the IDE!');\n// Try returning a value, e.g., Math.random();");
+  const [consoleOutput, setConsoleOutput] = useState<string>("Output will appear here...");
+
+  const handleRunCode = () => {
+    if (selectedLanguage === "javascript") {
+      try {
+        // eslint-disable-next-line no-new-func
+        const result = new Function(code)();
+        if (result !== undefined) {
+          setConsoleOutput(String(result));
+        } else {
+          // If new Function doesn't return anything explicitly,
+          // we might not get direct output here.
+          // For a real console, we'd need to override console.log.
+          // For now, we'll just indicate successful execution if no error.
+          setConsoleOutput("JavaScript executed successfully.\n(Note: Direct console.log output is not captured in this preview. Return a value to see it here.)");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          setConsoleOutput(`Error: ${error.message}`);
+        } else {
+          setConsoleOutput(`An unknown error occurred: ${String(error)}`);
+        }
+      }
+    } else {
+      setConsoleOutput(`Running ${selectedLanguage} code is not supported in this preview environment.`);
+    }
+  };
+
+  const handleClearConsole = () => {
+    setConsoleOutput("");
+  };
 
   return (
     <AppShell>
@@ -20,7 +52,7 @@ export default function IdePage() {
             Practice IDE
           </h1>
           <p className="text-xl text-muted-foreground">
-            A space to experiment with code. (UI Preview)
+            A space to experiment with code. (UI Preview with basic JS execution)
           </p>
         </header>
 
@@ -74,7 +106,12 @@ export default function IdePage() {
                 <Button variant="outline" size="sm" disabled className="h-8 text-xs">
                   <Save className="mr-1.5 h-3.5 w-3.5" /> Save
                 </Button>
-                <Button variant="default" size="sm" disabled className="h-8 text-xs bg-green-600 hover:bg-green-700">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="h-8 text-xs bg-green-600 hover:bg-green-700"
+                  onClick={handleRunCode}
+                >
                   <Play className="mr-1.5 h-3.5 w-3.5" /> Run
                 </Button>
                  <Button variant="ghost" size="icon" disabled className="h-8 w-8">
@@ -88,9 +125,10 @@ export default function IdePage() {
               {/* Editor Area */}
               <div className="w-full md:w-2/3 h-1/2 md:h-full flex flex-col border-r-0 md:border-r">
                 <Textarea
-                  placeholder="// Your code goes here... Basic editing enabled for all users."
+                  placeholder="// Your code goes here..."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-sm font-mono focus-visible:ring-0 focus-visible:ring-offset-0"
-                  // Code editing is enabled by default (no readOnly prop)
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
                 />
               </div>
 
@@ -98,13 +136,14 @@ export default function IdePage() {
               <div className="w-full md:w-1/3 h-1/2 md:h-full flex flex-col bg-secondary/20">
                 <div className="p-2 border-b flex justify-between items-center">
                     <h3 className="text-sm font-semibold text-muted-foreground">Console Output</h3>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" disabled title="Clear console">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleClearConsole} title="Clear console">
                         <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                 </div>
                 <Textarea
                   placeholder="Output will appear here..."
                   className="flex-grow w-full h-full rounded-none border-0 resize-none p-4 text-xs font-mono bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={consoleOutput}
                   readOnly 
                 />
               </div>
@@ -123,8 +162,8 @@ export default function IdePage() {
                 </div>
              </div>
             <p className="text-xs text-muted-foreground text-center w-full mt-2">
-              Note: This is a visual representation. Code editing is enabled for practice. 
-              Code execution, class verification, and advanced tools are not functional.
+              Note: This is a visual representation. Basic JavaScript execution is enabled for preview. 
+              Code execution for other languages, class verification, and advanced tools are not functional.
               Advanced tools would be available for Grade 9+ users after class confirmation.
             </p>
           </CardFooter>
