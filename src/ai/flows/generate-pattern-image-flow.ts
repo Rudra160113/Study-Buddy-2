@@ -35,7 +35,7 @@ const generatePatternImageFlow = ai.defineFlow(
     try {
       const { media } = await ai.generate({
         model: 'googleai/gemini-2.0-flash-exp',
-        prompt: `Generate a very simple, clear, iconic image of: ${prompt}. Solid background. Distinguishable silhouette. Good for a memory game.`,
+        prompt: `Fast generation: a very simple, iconic image of: ${prompt}. Minimalist. Solid background. Clear silhouette for a memory game.`,
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
           safetySettings: [
@@ -44,11 +44,6 @@ const generatePatternImageFlow = ai.defineFlow(
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
           ],
-          // Attempt to guide towards smaller, simpler images if possible (model dependent)
-          // generationConfig: { // This is a hypothetical config, actual options vary by model/API
-          //   candidateCount: 1,
-          //   imageDetails: { width: 128, height: 128 }, // Example, may not be supported
-          // },
         },
       });
 
@@ -66,3 +61,4 @@ const generatePatternImageFlow = ai.defineFlow(
     }
   }
 );
+
