@@ -61,7 +61,7 @@ const AnalogClock: React.FC<AnalogClockProps> = ({ size = 300, className }) => {
     const x2 = centerX + clockRadius * Math.cos(angleRad);
     const y2 = centerY + clockRadius * Math.sin(angleRad);
     return {
-      key: `marker-${index}`,
+      markerKey: `marker-${index}`, // Renamed to avoid confusion, will be used as key
       x1, y1, x2, y2,
       strokeWidth: isMajor ? size * 0.012 : size * 0.006,
     };
@@ -75,8 +75,8 @@ const AnalogClock: React.FC<AnalogClockProps> = ({ size = 300, className }) => {
         
         {/* Hour Markers */}
         {Array.from({ length: 12 }, (_, i) => {
-          const props = getMarkerProps(i);
-          return <line {...props} stroke="hsl(var(--foreground))" strokeLinecap="round" />;
+          const { markerKey, ...markerLineProps } = getMarkerProps(i);
+          return <line key={markerKey} {...markerLineProps} stroke="hsl(var(--foreground))" strokeLinecap="round" />;
         })}
 
         {/* Hour Hand */}
