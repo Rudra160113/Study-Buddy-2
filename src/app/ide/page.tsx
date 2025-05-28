@@ -167,7 +167,7 @@ export default function IdePage() {
   };
 
   const runButtonText = isProcessingRun 
-    ? (selectedLanguage === 'javascript' ? 'Running JS...' : 'Analyzing...') 
+    ? (selectedLanguage === 'javascript' ? 'Running JS...' : 'AI Analyzing...') 
     : "Run";
   const runButtonIcon = isProcessingRun 
     ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -261,7 +261,7 @@ export default function IdePage() {
           </CardContent>
            <CardFooter className="p-3 border-t flex flex-col gap-2 items-start">
              <div className="w-full">
-                <h4 className="text-sm font-semibold text-muted-foreground mb-1">Advanced Tools (Conceptual Preview)</h4>
+                <h4 className="text-sm font-semibold text-muted-foreground mb-1">Advanced Tools</h4>
                 <p className="text-xs text-muted-foreground mb-2">
                   Use the LLM Assistant to get suggestions or corrections for your code.
                 </p>

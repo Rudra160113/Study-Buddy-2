@@ -18,8 +18,8 @@
     services = ["auth" "firestore"];
   };
   idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
-    extensions = [
+    extensions = [    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
+    
       # "vscodevim.vim"
     ];
     workspace = {
