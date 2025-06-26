@@ -12,8 +12,9 @@ import { SearchBar } from '@/components/search-bar';
 import { studyBuddySearch, type StudyBuddySearchInput, type StudyBuddySearchOutput } from '@/ai/flows/study-buddy-search-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDownCircle } from 'lucide-react';
-import { useCurrentUserEmail } from '@/hooks/use-current-user-email'; // Added
+import { ArrowDownCircle, RefreshCw } from 'lucide-react';
+import { useCurrentUserEmail } from '@/hooks/use-current-user-email';
+import { Button } from '@/components/ui/button';
 
 interface SearchResult {
   query: string;
@@ -58,7 +59,7 @@ const StudyBuddyLogo = () => (
 
 
 export default function DashboardPage() {
-  const currentUserEmail = useCurrentUserEmail(); // Added
+  const currentUserEmail = useCurrentUserEmail();
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
   const [searchBarPosition, setSearchBarPosition] = useState<'top' | 'bottom'>('top');
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
@@ -112,8 +113,15 @@ export default function DashboardPage() {
     }
   };
 
+  const handleStartNewSearch = () => {
+    setSearchResult(null);
+    setSearchBarPosition('top');
+    setCurrentQuery("");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const SearchSection = ({isBottom = false}: {isBottom?: boolean}) => (
-    <div className={`w-full flex flex-col items-center ${isBottom ? 'py-2' : 'mb-8'}`}>
+    <div className={`w-full flex flex-col items-center ${isBottom ? '' : 'mb-8'}`}>
       <SearchBar 
         onSearch={handleSearch} 
         isLoading={isLoadingSearch} 
@@ -164,10 +172,7 @@ export default function DashboardPage() {
         {searchResult && (
           <div ref={searchResultsRef} className="w-full max-w-3xl space-y-6">
             <Card className="shadow-xl animate-in fade-in-50 slide-in-from-bottom-10 duration-500">
-              <CardHeader>
-                <CardTitle className="text-2xl">Response to: "{searchResult.query}"</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-6">
                 {searchResult.imageUrl && (
                   <div className="flex justify-center my-4 rounded-lg overflow-hidden shadow-md">
                     <Image
@@ -215,12 +220,18 @@ export default function DashboardPage() {
 
         {searchBarPosition === 'bottom' && (
           <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-background/90 backdrop-blur-sm border-t border-border shadow-lg z-20">
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-2xl mx-auto">
               <div className="flex items-center justify-center mb-2 text-sm text-muted-foreground">
                 <ArrowDownCircle className="h-4 w-4 mr-1" />
-                <span>Ask a follow-up or new question</span>
+                <span>Ask a follow-up or start a new search</span>
               </div>
-              <SearchSection isBottom={true}/>
+              <div className="flex items-center gap-2">
+                <SearchSection isBottom={true}/>
+                 <Button variant="outline" onClick={handleStartNewSearch} title="Start New Search">
+                    <RefreshCw className="h-4 w-4" />
+                    <span className="sr-only">Start New Search</span>
+                </Button>
+              </div>
             </div>
           </div>
         )}
