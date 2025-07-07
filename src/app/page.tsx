@@ -137,116 +137,127 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col items-center space-y-6 min-h-full pb-8"> 
-        <div className="w-full max-w-3xl">
-          <div className="text-center my-6">
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-primary">
-              Study Buddy
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mt-2">
-              The buddy for your study
-            </p>
-          </div>
-          <SearchBar 
-            onSearch={handleSearch} 
-            isLoading={isLoadingSearch} 
-            placeholder={conversation.length > 0 ? "Ask a follow-up question..." : "Ask Study Buddy anything..."} 
-          />
-        </div>
+      <div className="flex flex-col h-full">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-        {conversation.length === 0 && !isLoadingSearch && (
-          <>
-            <Card className="w-full max-w-4xl shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-3xl font-bold">Welcome, {currentUserEmail || 'Guest'}!</CardTitle>
-                <CardDescription className="text-lg">Your personal AI-powered study assistant. Let's get productive!</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col md:flex-row items-center gap-6">
-                <div className="flex-1">
-                  <p className="text-muted-foreground">
-                    Stay organized, manage your tasks, and get smart suggestions to boost your learning.
-                    Ask me anything using the search bar above, or navigate using the sidebar to access other tools.
+            {/* Initial View: Shown only when there is no conversation */}
+            {conversation.length === 0 && !isLoadingSearch && (
+              <>
+                <div className="text-center my-6">
+                  <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-primary">
+                    Study Buddy
+                  </h1>
+                  <p className="text-lg md:text-xl text-muted-foreground mt-2">
+                    The buddy for your study
                   </p>
                 </div>
-                <div className="flex-shrink-0">
-                  <StudyBuddyLogo />
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-3xl font-bold">Welcome, {currentUserEmail || 'Guest'}!</CardTitle>
+                    <CardDescription className="text-lg">Your personal AI-powered study assistant. Let's get productive!</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-1">
+                      <p className="text-muted-foreground">
+                        Stay organized, manage your tasks, and get smart suggestions to boost your learning.
+                        Ask me anything using the search bar below, or navigate using the sidebar to access other tools.
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <StudyBuddyLogo />
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <DeadlineCountdown items={scheduleItems} />
+                  <ProgressTracker items={scheduleItems} />
                 </div>
-              </CardContent>
-            </Card>
-            <div className="grid gap-6 md:grid-cols-2 w-full max-w-4xl">
-              <DeadlineCountdown items={scheduleItems} />
-              <ProgressTracker items={scheduleItems} />
-            </div>
-          </>
-        )}
+              </>
+            )}
 
-        {conversation.length > 0 && (
-          <div className="w-full max-w-3xl space-y-6">
-             <Card>
-                <CardHeader className="flex-row justify-between items-center">
+            {/* Conversation View */}
+            {conversation.length > 0 && (
+              <div className="w-full max-w-3xl mx-auto space-y-6">
+                <Card>
+                  <CardHeader className="flex-row justify-between items-center">
                     <CardTitle>Conversation</CardTitle>
                     <Button variant="outline" size="sm" onClick={handleStartNewSearch}>
-                        <RefreshCw className="mr-2 h-4 w-4" /> New Search
+                      <RefreshCw className="mr-2 h-4 w-4" /> New Search
                     </Button>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                   {conversation.map((turn, index) => (
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {conversation.map((turn, index) => (
                       <div key={index} className="flex gap-4 items-start animate-in fade-in-50 duration-500">
-                         <Avatar>
-                            <AvatarFallback className={turn.role === 'user' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'}>
-                                {turn.role === 'user' ? <User /> : <Sparkles />}
-                            </AvatarFallback>
-                         </Avatar>
-                         <div className="flex-1 space-y-2">
-                            <p className="font-semibold">{turn.role === 'user' ? 'You' : 'Study Buddy'}</p>
-                            <div className="p-4 rounded-lg bg-secondary/50">
-                                {turn.role === 'user' ? (
-                                    <p className="text-md">{turn.query}</p>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {turn.imageUrl && (
-                                            <div className="flex justify-center rounded-lg overflow-hidden shadow-md border">
-                                                <Image
-                                                src={turn.imageUrl}
-                                                alt={`Generated image for your query`}
-                                                width={400}
-                                                height={250}
-                                                className="object-contain"
-                                                data-ai-hint="study concept"
-                                                unoptimized={turn.imageUrl.startsWith('data:')}
-                                                />
-                                            </div>
-                                        )}
-                                        <p className="text-md whitespace-pre-line leading-relaxed">{turn.answer}</p>
-                                    </div>
+                        <Avatar>
+                          <AvatarFallback className={turn.role === 'user' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'}>
+                            {turn.role === 'user' ? <User /> : <Sparkles />}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <p className="font-semibold">{turn.role === 'user' ? 'You' : 'Study Buddy'}</p>
+                          <div className="p-4 rounded-lg bg-secondary/50">
+                            {turn.role === 'user' ? (
+                              <p className="text-md">{turn.query}</p>
+                            ) : (
+                              <div className="space-y-4">
+                                {turn.imageUrl && (
+                                  <div className="flex justify-center rounded-lg overflow-hidden shadow-md border">
+                                    <Image
+                                      src={turn.imageUrl}
+                                      alt={`Generated image for your query`}
+                                      width={400}
+                                      height={250}
+                                      className="object-contain"
+                                      data-ai-hint="study concept"
+                                      unoptimized={turn.imageUrl.startsWith('data:')}
+                                    />
+                                  </div>
                                 )}
-                            </div>
-                         </div>
+                                <p className="text-md whitespace-pre-line leading-relaxed">{turn.answer}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                   ))}
-                   {isLoadingSearch && (
+                    ))}
+                    {isLoadingSearch && (
                       <div className="flex gap-4 items-start">
-                         <Avatar>
-                            <AvatarFallback className='bg-primary text-primary-foreground'>
-                                <Sparkles />
-                            </AvatarFallback>
-                         </Avatar>
-                         <div className="flex-1 space-y-2">
-                             <p className="font-semibold">Study Buddy</p>
-                             <div className="p-4 rounded-lg bg-secondary/50 space-y-2">
-                                <Skeleton className="h-4 w-1/4" />
-                                <Skeleton className="h-4 w-full" />
-                                <Skeleton className="h-4 w-5/6" />
-                             </div>
-                         </div>
+                        <Avatar>
+                          <AvatarFallback className='bg-primary text-primary-foreground'>
+                            <Sparkles />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <p className="font-semibold">Study Buddy</p>
+                          <div className="p-4 rounded-lg bg-secondary/50 space-y-2">
+                            <Skeleton className="h-4 w-1/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                          </div>
+                        </div>
                       </div>
-                   )}
-                </CardContent>
-             </Card>
-             <div ref={resultsRef} />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            
+            <div ref={resultsRef} />
           </div>
-        )}
+        </div>
 
+        {/* Search Bar at the bottom */}
+        <div className="border-t bg-background">
+          <div className="max-w-3xl mx-auto p-4">
+            <SearchBar 
+              onSearch={handleSearch} 
+              isLoading={isLoadingSearch} 
+              placeholder={conversation.length > 0 ? "Ask a follow-up question..." : "Ask Study Buddy anything..."} 
+            />
+          </div>
+        </div>
       </div>
     </AppShell>
   );
