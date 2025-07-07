@@ -1,0 +1,13 @@
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  # Set a longer timeout for AI functions.
+  # Note: Netlify's free tier has a 10-second limit.
+  # A paid plan may be required for this to take full effect.
+  timeout = 26

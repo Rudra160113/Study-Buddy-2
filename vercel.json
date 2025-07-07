@@ -1,0 +1,8 @@
+
+{
+  "functions": {
+    "src/app/api/genkit/[...flow]/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
