@@ -6,19 +6,22 @@ import { DeadlineCountdown } from '@/components/deadline-countdown';
 import { ProgressTracker } from '@/components/progress-tracker';
 import type { ScheduleItem } from '@/lib/types';
 import { useEffect, useState, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
 import { SearchBar } from '@/components/search-bar';
 import { studyBuddySearch, type StudyBuddySearchInput, type StudyBuddySearchOutput } from '@/ai/flows/study-buddy-search-flow';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowDownCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw, User, Sparkles } from 'lucide-react';
 import { useCurrentUserEmail } from '@/hooks/use-current-user-email';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-interface SearchResult {
-  query: string;
-  answer: string;
+
+interface ConversationTurn {
+  role: 'user' | 'model';
+  query?: string;
+  answer?: string;
   imageUrl?: string;
 }
 
@@ -61,13 +64,15 @@ const StudyBuddyLogo = () => (
 export default function DashboardPage() {
   const currentUserEmail = useCurrentUserEmail();
   const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([]);
-  const [searchBarPosition, setSearchBarPosition] = useState<'top' | 'bottom'>('top');
   const [isLoadingSearch, setIsLoadingSearch] = useState(false);
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const [currentQuery, setCurrentQuery] = useState(""); 
+  const [conversation, setConversation] = useState<ConversationTurn[]>([]);
 
   const { toast } = useToast();
-  const searchResultsRef = useRef<HTMLDivElement>(null); 
+  const resultsRef = useRef<HTMLDivElement>(null); 
+
+  useEffect(() => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation]);
 
   useEffect(() => {
     if (currentUserEmail === undefined) return; // Wait for email
@@ -88,19 +93,21 @@ export default function DashboardPage() {
 
   const handleSearch = async (query: string) => {
     setIsLoadingSearch(true);
-    setSearchResult(null); 
-    setCurrentQuery(query); 
+    setConversation(prev => [...prev, { role: 'user', query }]);
+    
+    // Prepare history for Genkit
+    const genkitHistory = conversation.map(turn => {
+        if (turn.role === 'user') {
+            return { role: 'user' as const, content: turn.query! };
+        } else {
+            return { role: 'model' as const, content: turn.answer! };
+        }
+    });
 
     try {
-      const input: StudyBuddySearchInput = { query };
+      const input: StudyBuddySearchInput = { query, history: genkitHistory };
       const result: StudyBuddySearchOutput = await studyBuddySearch(input);
-      setSearchResult({ query, ...result });
-      if (searchBarPosition === 'top') {
-        setSearchBarPosition('bottom');
-      }
-      setTimeout(() => {
-        searchResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      setConversation(prev => [...prev, { role: 'model', ...result }]);
     } catch (error) {
       console.error("Search failed:", error);
       toast({
@@ -108,27 +115,15 @@ export default function DashboardPage() {
         description: "Sorry, I couldn't fetch an answer. Please try again.",
         variant: "destructive",
       });
+      setConversation(prev => [...prev, { role: 'model', answer: "I'm sorry, I ran into an error. Please try again." }]);
     } finally {
       setIsLoadingSearch(false);
     }
   };
 
   const handleStartNewSearch = () => {
-    setSearchResult(null);
-    setSearchBarPosition('top');
-    setCurrentQuery("");
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setConversation([]);
   };
-
-  const SearchSection = ({isBottom = false}: {isBottom?: boolean}) => (
-    <div className={`w-full flex flex-col items-center ${isBottom ? '' : 'mb-8'}`}>
-      <SearchBar 
-        onSearch={handleSearch} 
-        isLoading={isLoadingSearch} 
-        placeholder={searchBarPosition === 'bottom' ? "Ask a follow-up or new question..." : "Ask Study Buddy anything..."} 
-      />
-    </div>
-  );
 
   if (currentUserEmail === undefined) {
     return (
@@ -142,57 +137,24 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col items-center space-y-6 min-h-full pb-24"> 
-        {searchBarPosition === 'top' && <SearchSection />}
-
-        <div className="text-center my-6">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-primary">
-            Study Buddy
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mt-2">
-            The buddy for your study
-          </p>
-        </div>
-        
-        {isLoadingSearch && !searchResult && (
-          <Card className="w-full max-w-3xl shadow-lg">
-            <CardHeader>
-              <Skeleton className="h-8 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-1/2" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-40 w-full aspect-video" />
-              <Skeleton className="h-6 w-full mt-4" />
-              <Skeleton className="h-6 w-5/6" />
-              <Skeleton className="h-6 w-3/4" />
-            </CardContent>
-          </Card>
-        )}
-
-        {searchResult && (
-          <div ref={searchResultsRef} className="w-full max-w-3xl space-y-6">
-            <Card className="shadow-xl animate-in fade-in-50 slide-in-from-bottom-10 duration-500">
-              <CardContent className="space-y-4 pt-6">
-                {searchResult.imageUrl && (
-                  <div className="flex justify-center my-4 rounded-lg overflow-hidden shadow-md">
-                    <Image
-                      src={searchResult.imageUrl}
-                      alt={`Generated image for "${searchResult.query}"`}
-                      width={500}
-                      height={300}
-                      className="object-contain" 
-                      data-ai-hint="study concept"
-                      unoptimized={searchResult.imageUrl.startsWith('data:')} 
-                    />
-                  </div>
-                )}
-                <p className="text-md whitespace-pre-line leading-relaxed">{searchResult.answer}</p>
-              </CardContent>
-            </Card>
+      <div className="flex flex-col items-center space-y-6 min-h-full pb-8"> 
+        <div className="w-full max-w-3xl">
+          <div className="text-center my-6">
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-primary">
+              Study Buddy
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mt-2">
+              The buddy for your study
+            </p>
           </div>
-        )}
+          <SearchBar 
+            onSearch={handleSearch} 
+            isLoading={isLoadingSearch} 
+            placeholder={conversation.length > 0 ? "Ask a follow-up question..." : "Ask Study Buddy anything..."} 
+          />
+        </div>
 
-        {!isLoadingSearch && !searchResult && searchBarPosition === 'top' && (
+        {conversation.length === 0 && !isLoadingSearch && (
           <>
             <Card className="w-full max-w-4xl shadow-lg">
               <CardHeader>
@@ -218,23 +180,73 @@ export default function DashboardPage() {
           </>
         )}
 
-        {searchBarPosition === 'bottom' && (
-          <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-background/90 backdrop-blur-sm border-t border-border shadow-lg z-20">
-            <div className="max-w-2xl mx-auto">
-              <div className="flex items-center justify-center mb-2 text-sm text-muted-foreground">
-                <ArrowDownCircle className="h-4 w-4 mr-1" />
-                <span>Ask a follow-up or start a new search</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <SearchSection isBottom={true}/>
-                 <Button variant="outline" onClick={handleStartNewSearch} title="Start New Search">
-                    <RefreshCw className="h-4 w-4" />
-                    <span className="sr-only">Start New Search</span>
-                </Button>
-              </div>
-            </div>
+        {conversation.length > 0 && (
+          <div className="w-full max-w-3xl space-y-6">
+             <Card>
+                <CardHeader className="flex-row justify-between items-center">
+                    <CardTitle>Conversation</CardTitle>
+                    <Button variant="outline" size="sm" onClick={handleStartNewSearch}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> New Search
+                    </Button>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                   {conversation.map((turn, index) => (
+                      <div key={index} className="flex gap-4 items-start animate-in fade-in-50 duration-500">
+                         <Avatar>
+                            <AvatarFallback className={turn.role === 'user' ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'}>
+                                {turn.role === 'user' ? <User /> : <Sparkles />}
+                            </AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1 space-y-2">
+                            <p className="font-semibold">{turn.role === 'user' ? 'You' : 'Study Buddy'}</p>
+                            <div className="p-4 rounded-lg bg-secondary/50">
+                                {turn.role === 'user' ? (
+                                    <p className="text-md">{turn.query}</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {turn.imageUrl && (
+                                            <div className="flex justify-center rounded-lg overflow-hidden shadow-md border">
+                                                <Image
+                                                src={turn.imageUrl}
+                                                alt={`Generated image for your query`}
+                                                width={400}
+                                                height={250}
+                                                className="object-contain"
+                                                data-ai-hint="study concept"
+                                                unoptimized={turn.imageUrl.startsWith('data:')}
+                                                />
+                                            </div>
+                                        )}
+                                        <p className="text-md whitespace-pre-line leading-relaxed">{turn.answer}</p>
+                                    </div>
+                                )}
+                            </div>
+                         </div>
+                      </div>
+                   ))}
+                   {isLoadingSearch && (
+                      <div className="flex gap-4 items-start">
+                         <Avatar>
+                            <AvatarFallback className='bg-primary text-primary-foreground'>
+                                <Sparkles />
+                            </AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1 space-y-2">
+                             <p className="font-semibold">Study Buddy</p>
+                             <div className="p-4 rounded-lg bg-secondary/50 space-y-2">
+                                <Skeleton className="h-4 w-1/4" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-5/6" />
+                             </div>
+                         </div>
+                      </div>
+                   )}
+                </CardContent>
+             </Card>
+             <div ref={resultsRef} />
           </div>
         )}
+
       </div>
     </AppShell>
   );

@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A Genkit flow to answer user queries and generate relevant images.
+ * @fileOverview A Genkit flow to answer user queries and generate relevant images with conversation history.
  *
  * - studyBuddySearch - A function that takes a user query and returns a textual answer and an image URL.
  * - StudyBuddySearchInput - The input type for the studyBuddySearch function.
@@ -13,6 +13,10 @@ import { z } from 'genkit';
 
 const StudyBuddySearchInputSchema = z.object({
   query: z.string().describe("The user's search query or question."),
+  history: z.array(z.object({
+    role: z.enum(['user', 'model']),
+    content: z.string(),
+  })).optional().describe("The conversation history."),
 });
 export type StudyBuddySearchInput = z.infer<typeof StudyBuddySearchInputSchema>;
 
@@ -31,14 +35,13 @@ const textGenerationPrompt = ai.definePrompt({
   name: 'studyBuddyTextPrompt',
   input: { schema: StudyBuddySearchInputSchema },
   output: { schema: z.object({ answer: z.string() }) },
-  prompt: `You are Study Buddy, a helpful AI assistant. Your primary goal is to provide clear, concise, and accurate information to help students with their studies.
-  When a user asks a question, provide a comprehensive yet easy-to-understand answer. If the question is ambiguous, ask for clarification.
+  system: `You are Study Buddy, a helpful AI assistant. Your primary goal is to provide clear, concise, and accurate information to help students with their studies.
+  When a user asks a question, provide a comprehensive yet easy-to-understand answer.
+  Use the context from the conversation history to answer follow-up questions. For example, if you just explained the "respiratory system" and the user asks "what are its functions", you must understand that "it" refers to the respiratory system.
+  If the question is ambiguous, ask for clarification.
   If the query is very broad, try to narrow down the scope or provide a general overview with pointers to more specific topics.
-  Always maintain a positive and encouraging tone.
-
-User Query: {{{query}}}
-
-Answer:`,
+  Always maintain a positive and encouraging tone.`,
+  prompt: `{{{query}}}`,
 });
 
 // Flow definition
