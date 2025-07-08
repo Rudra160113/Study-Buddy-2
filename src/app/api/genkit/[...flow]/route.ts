@@ -1,5 +1,16 @@
+import { defineGenkit } from '@genkit-ai/next';
+import { init } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
-import { genkit } from '@genkit-ai/next';
+init({
+  plugins: [
+    googleAI(),
+  ],
+  logLevel: 'debug',
+  // Set your project ID here. If you don't have one, see
+  // https://cloud.google.com/gemini/docs/genkit-project-setup
+  // projectId: 'your-project-id',
+});
 
 // Import all the flows that should be exposed via the API route.
 import '@/ai/flows/suggest-resources.ts';
@@ -23,4 +34,4 @@ import '@/ai/flows/generate-creature-image-flow.ts';
 import '@/ai/flows/analyze-image-flow.ts';
 
 // Expose the flows using the Genkit Next.js plugin.
-export const { GET, POST } = genkit();
+export const { GET, POST } = defineGenkit();
