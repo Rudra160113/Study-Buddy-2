@@ -272,7 +272,15 @@ export default function JurassicWorldPage() {
                     width={300}
                     height={300}
                     className="object-cover w-full h-full transition-transform hover:scale-105"
-                    unoptimized={creature.imageUrl.startsWith('data:') || creature.imageUrl.startsWith('https://placehold.co')}
+                    unoptimized={(() => {
+                      try {
+                        const parsedUrl = new URL(creature.imageUrl);
+                        const allowedHosts = ['placehold.co'];
+                        return creature.imageUrl.startsWith('data:') || allowedHosts.includes(parsedUrl.host);
+                      } catch (e) {
+                        return false; // Invalid URL
+                      }
+                    })()}
                     priority={PREDEFINED_CREATURES.indexOf(creature.name) < 4} 
                   />
                 )}
